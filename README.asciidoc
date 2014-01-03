@@ -1,5 +1,5 @@
-hbcxx - Executable C++ source code
-==================================
+hbcxx - Using "#!/usr/bin/env hbcxx" to make C++ source code executable
+=======================================================================
 
 Overview
 --------
@@ -7,16 +7,18 @@ Overview
 hbcxx uses the Unix +#!/path/to/interpreter+ technique to make C++ (and C) source
 code directly executable.
 
-At the technical level hbcxx is merely a build system that
-automatically launches the resulting executable. Although this is strictly
-true this is probably not the best way to look at it.
+At the technical level hbcxx is a build system that automatically
+launches the resulting executable but, although this is strictly
+true, this is probably not the best way to look at it.
 
 Quoting Bjarne Stroustrup: _Surprisingly, C\+\+11 feels like a new language_
 footnote:[http://www.stroustrup.com/C\+\+11FAQ.html#think]. This quote is absolutely
 on the money, modern C\++ does feel like another language. This is not
 because the language has been changed massively but because the new
 features encourage a different, and slightly higher level way to think
-about writing C++. It's faster and more fun.
+about writing C++. It's faster and more fun, supports lambdas, has
+tools to simplify memory management and includes regular expressions in
+the standard library.
 
 Think of hbcxx as a tool to keep things fast and fun by putting of the moment you
 have to write a build system and an install script. For simple programs, especially
@@ -59,11 +61,29 @@ along with this program.  If not, see http://www.gnu.org/licenses/ .
 Installation
 ------------
 
+Where to get hbcxx
+~~~~~~~~~~~~~~~~~~
+
+hbcxx is primarily hosted by http://sourceforge.net[sourceforge.net]
+and releases can be downloaded from: https://sourceforge.net/projects/hbcxx/files/ .
+
+Alternatively, if you prefer to acquire hbcxx using git then try:
+
+  git clone git://git.code.sf.net/p/hbcxx/code hbcxx
+
+NOTE: If you prefer githib to sourceforge then there is an official mirror,
+      https://github.com/daniel-thompson/hbcxx.git , that you can use to
+      acquire hbcxx. Pull requests can be shared with the maintainer using
+      both sourceforge and github.
+
+Prerequisites
+~~~~~~~~~~~~~
+
 hbcxx requires a recent C++11 compiler (GCC 4.8 or later is
 recommended) and both boost::filesystem and boost::regex.
 
-NOTE: std::regex is included in C\+\+11 but is not yet supported by
-      libstdc\++ 4.8.x so hbcxx uses the boost library. Similarly
+NOTE: std::regex is included in C\+\+11 but because is not yet supported by
+      libstdc\++ 4.8.x hbcxx uses the boost library instead. Similarly
       std::filesystem is expected to be included in C\+\+14. Once
       these libraries are fully implemented in both GCC and clang's C++
       libraries then the boost dependency may be relaxed.
@@ -89,6 +109,9 @@ NOTE: When packaging hbcxx all of the above packages should be
       systems, such as dpkg, that allow packages to be recommended
       rather than mandatory.
 
+Build and install
+~~~~~~~~~~~~~~~~~
+
 Having installed the prerequisite packages hbcxx can be installed into
 /usr/local using the following commands:
 
@@ -96,11 +119,11 @@ Having installed the prerequisite packages hbcxx can be installed into
   make
   make install
 
-To customise the installation process then run +./configure --help+ and
+To customise the installation process run +./configure --help+ and
 select the desired options.
 
 NOTE: If you have downloaded hbcxx via git then the configure script
-      must be generated using +autoreconf -iv+ before building. This
+      must be generated using +autoreconf -iv+ before building. Doing so
       requires autoconf 2.69 or later and automake 1.12 or later.
 
 Invocation
