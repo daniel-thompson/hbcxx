@@ -1,0 +1,29 @@
+#!/bin/sh
+
+#
+# self-hosting-test
+#
+# Part of hbcxx - executable C++ source code
+#
+# Copyright (C) 2014 Daniel Thompson <daniel@redfelineninja.org.uk>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+
+#
+# --help is used here because it will be ignored by the outer hbcxx but
+# recognized by the freshly compiled version an will stimulate a non-zero
+# error code.
+#
+
+[ -z "$top_srcdir" ] && top_srcdir=.
+
+exec hbcxx \
+    '-DPACKAGE_NAME="self-hosting-test"' \
+    '-DPACKAGE_STRING="self-hosting-test 0.0"' \
+    $top_srcdir/src/main.cpp \
+    --help
+

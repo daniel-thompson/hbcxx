@@ -1,0 +1,42 @@
+*.o
+*~
+.*.swp
+.*.swo
+
+.clang_complete
+.clang-format
+.project
+.cproject
+.settings/
+
+attic/
+
+# .deps is a directory that is used by automake (and can spring
+# up in multiple places). .dirstamp is similar but is a file.
+.deps
+.dirstamp
+
+# Autotools
+Makefile
+Makefile.in
+aclocal.m4
+ar-lib
+autom4te.cache/
+compile
+config.guess
+config.status
+config.log
+config.sub
+configure
+depcomp
+hbcxx-*.tar.gz
+install-sh
+missing
+test-driver
+test-suite.log
+tests/*.log
+tests/*.trs
+
+# Derived objects
+src/hbcxx
+README.html
