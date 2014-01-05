@@ -62,15 +62,14 @@ void Toolset::pushFlags(const std::list<std::string>& flags, FlagPosition positi
 	pushFlag(flag, position);
 }
 
-void Toolset::compile(const CompilationUnit& unit,
-                      const std::list<std::string>& privateFlags)
+void Toolset::compile(const CompilationUnit& unit)
 {
     auto command = _cxx + " -std=c++11 -c " + unit.getProcessedFileName()
                    + " -o " + unit.getObjectFileName();
 
     for (const auto& flag : _flags)
 	command += std::string{" '"} + flag + "'";
-    for (const auto& flag : privateFlags)
+    for (const auto& flag : unit.getPrivateFlags())
 	command += std::string{" '"} + flag + "'";
     for (const auto& flag : _lateFlags)
 	command += std::string{" '"} + flag + "'";

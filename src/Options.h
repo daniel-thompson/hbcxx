@@ -20,8 +20,9 @@ namespace Options {
 
 bool verbose();
 bool saveTemps();
-std::string debugger();
-std::string optimization();
+const std::string& debugger();
+const std::string& executable();
+const std::string& optimization();
 
 /*!
  * Filter arguments and process hbcxx arguments.

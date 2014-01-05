@@ -24,13 +24,15 @@ static struct {
     bool verbose;
     bool saveTemps;
     std::string debugger;
+    std::string executable;
     std::string optimization;
 } optionStore = { false, false };
 
 bool Options::verbose() { return optionStore.verbose; }
 bool Options::saveTemps() { return optionStore.saveTemps; }
-std::string Options::debugger() { return optionStore.debugger; }
-std::string Options::optimization() { return optionStore.optimization; }
+const std::string& Options::debugger() { return optionStore.debugger; }
+const std::string& Options::executable() { return optionStore.executable; }
+const std::string& Options::optimization() { return optionStore.optimization; }
 
 /*!
  * Filter arguments and process hbcxx arguments.
@@ -60,6 +62,11 @@ bool Options::checkArgument(const std::string& arg)
 
     if (startswith(arg, "--hbcxx-debugger=")) {
 	optionStore.debugger = arg.substr(sizeof("--hbcxx-debugger=")-1);
+	return true;
+    }
+
+    if (startswith(arg, "--hbcxx-executable=")) {
+	optionStore.executable = arg.substr(sizeof("--hbcxx-executable=")-1);
 	return true;
     }
 

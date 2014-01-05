@@ -12,16 +12,17 @@ launches the resulting executable but, although this is strictly
 true, this is probably not the best way to look at it.
 
 Quoting Bjarne Stroustrup: _Surprisingly, C\+\+11 feels like a new language_
-footnote:[http://www.stroustrup.com/C\+\+11FAQ.html#think]. This quote is absolutely
-on the money, modern C\++ does feel like another language. This is not
+footnote:[http://www.stroustrup.com/C\+\+11FAQ.html#think]. Considering its
+source it is not at all surprising that this quote is absolutely on the money:
+modern C\++ does feel like another language. This is not
 because the language has been changed massively but because the new
 features encourage a different, and slightly higher level way to think
 about writing C++. It's faster and more fun, supports lambdas, has
-tools to simplify memory management and includes regular expressions in
-the standard library.
+tools to simplify memory management and includes regular expressions
+out-of-the-box.
 
-Think of hbcxx as a tool to keep things fast and fun by putting of the moment you
-have to write a build system and an install script. For simple programs, especially
+Think of hbcxx as a tool to keep things fast and fun by putting off the moment you
+have to write a build system and install script. For simple programs, especially
 for quick and dirty personal toys, the day you have to write a proper build system
 may never come.
 
@@ -182,6 +183,13 @@ Show hbcxx version information and exit.
 
 Build in verbose mode showing the command line of all compiler and
 linker invocations.
+
+  --hbcxx-executable=<filename>
+
+Compile and link the executable, storing the result as <filename>.
+Unlike other invocations the executable will not be launched automatically.
+This option allows a traditional executable to be built and shared
+with others.
 
   --hbcxx-save-temps
 
@@ -396,7 +404,6 @@ executable be linked or run.
 Bugs and missing features
 -------------------------
 
- * No --hbcxx-executable= .
  * No --hbcxx-cxx= .
  * Does not auto-detect ccache (it is used unconditionally)
  * Does not auto-detect compiler
@@ -410,3 +417,8 @@ Bugs and missing features
  * Local headers (those included using double quotes and checked for
    related source files, see Include file handling, above) are not
    currently pre-pre-processed to detect other related source files.
+ * Can only generate wholly dynamic (default) or wholly static
+   (+hbcxx -static <filename>+) executables (wholly static executables
+   are strongly discouraged by the GNU glibc maintainers). The capacity to
+   generate mostly static executables where unusual libraries are
+   statically linked would be very helpful.

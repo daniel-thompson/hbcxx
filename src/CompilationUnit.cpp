@@ -19,6 +19,7 @@
 
 #include "filesystem.h"
 #include "string.h"
+#include "Options.h"
 #include "PrePreProcessor.h"
 
 using hbcxx::shlex;
@@ -112,6 +113,10 @@ std::string CompilationUnit::getObjectFileName() const
 
 std::string CompilationUnit::getExecutableFileName() const
 {
+    auto executable = Options::executable();
+    if (!executable.empty())
+	return executable;
+
     auto original = file::path{_originalFileName};
     auto extension = original.extension();
     if (extension == ".exe") {
@@ -126,6 +131,9 @@ std::string CompilationUnit::getExecutableFileName() const
 
 void CompilationUnit::removeTemporaryFiles() const
 {
+    if (Options::saveTemps())
+	return;
+
     file::remove(getProcessedFileName());
     file::remove(getObjectFileName());
 }

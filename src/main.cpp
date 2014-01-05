@@ -91,13 +91,15 @@ static int run(std::list<std::string>& args)
     }
 
     for (auto& unit : compilationUnits)
-	toolset.compile(unit, unit.getPrivateFlags());
+	toolset.compile(unit);
 
     toolset.link(compilationUnits);
 
-    if (!Options::saveTemps())
-        for (auto& unit : compilationUnits)
-            unit.removeTemporaryFiles();
+    for (auto& unit : compilationUnits)
+        unit.removeTemporaryFiles();
+
+    if (!Options::executable().empty())
+        return 0;
 
     auto launcher = makeLauncher();
     auto& primaryUnit = compilationUnits.front();

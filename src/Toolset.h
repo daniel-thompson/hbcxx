@@ -43,8 +43,7 @@ public:
     void pushFlags(const std::list<std::string>& flags,
                    FlagPosition position = FlagNormal);
 
-    void compile(const CompilationUnit& unit,
-                 const std::list<std::string>& privateFlags = {});
+    void compile(const CompilationUnit& unit);
     void link(const std::list<CompilationUnit>& units);
 
 private:
