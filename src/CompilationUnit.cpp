@@ -62,6 +62,9 @@ CompilationUnit::CompilationUnit(const CompilationUnit& that)
 
 CompilationUnit::CompilationUnit(std::string fname)
     : _originalFileName{fname}
+    , _processedFileName{}
+    , _flags{}
+    , _privateFlags{}
 {
     auto original = file::path{fname};
     auto parent = original.parent_path();

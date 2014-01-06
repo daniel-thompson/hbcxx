@@ -30,6 +30,7 @@ AX_APPEND_COMPILE_FLAGS([-fno-omit-frame-pointer])
 
 AC_LANG([C++])
 AX_CXXFLAGS_WARN_ALL
+AX_APPEND_COMPILE_FLAGS([-Weffc++])
 AX_APPEND_COMPILE_FLAGS([-fsanitize=address])
 AX_APPEND_COMPILE_FLAGS([-fno-omit-frame-pointer])
 

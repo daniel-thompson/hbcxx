@@ -33,6 +33,8 @@ namespace re = boost;
 namespace file = boost::filesystem;
 
 PrePreProcessor::PrePreProcessor()
+    : _inputFileName{}
+    , _lineno{}
 {
 }
 
