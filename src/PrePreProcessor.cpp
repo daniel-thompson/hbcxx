@@ -102,7 +102,9 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
 
                 auto directive = match[1];
                 auto value = match[2];
-                if (directive == "private")
+		if (directive == "cxx")
+		    unit.pushFlags(std::string{"--hbcxx-cxx="} + value);
+                else if (directive == "private")
                     unit.pushPrivateFlags(value);
                 else if (directive == "requires")
                     unit.pushFlags(handleRequires(value));

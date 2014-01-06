@@ -48,6 +48,7 @@ public:
 
 private:
     std::string _cxx;
+    bool _hasCcache;
     std::list<std::string> _flags;
     std::list<std::string> _lateFlags;
 };

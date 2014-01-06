@@ -373,7 +373,7 @@ Examples:
 Source directives
 ~~~~~~~~~~~~~~~~~
 
-Source directives are used to specific additional source files that must
+Source directives are used to specify additional source files that must
 be compiled and linked into the executable and have the following form:
 
   //#! source: <filename>...
@@ -394,6 +394,21 @@ Examples:
   // bar.h requires multiple files to be compiled
   #include "bar.h" //#! source: src/iron_bar.cpp src/steel_bar.cpp
 
+Unusual directives
+~~~~~~~~~~~~~~~~~~
+
+The directives introduced in this section are less commonly used than
+the other hash bang directives. Most are used only for specialist needs
+and beginner users will seldom need to use them.
+
+  //#! cxx: <compiler>
+
+The cxx directive is used to specify that the software should be built
+using an alternative compiler driver, such as clang++. This is only
+useful on distributions where there is more than one C++ compiler
+installed. In other circumstances the automatically selected compiler
+is likely to be the best choice already.
+
 Unsupported directives
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -404,9 +419,6 @@ executable be linked or run.
 Bugs and missing features
 -------------------------
 
- * No --hbcxx-cxx= .
- * Does not auto-detect ccache (it is used unconditionally)
- * Does not auto-detect compiler
  * Does not check the compiler support -std=c++11
  * Organisation of the ~/.hbcxx directory lacks elegance.
  * Executables get the wrong value passed as argument 0 when run

@@ -17,14 +17,40 @@
 #include <iostream>
 #include <utility>
 
+#include "string.h"
 #include "CompilationUnit.h"
 #include "Options.h"
 
-Toolset::Toolset() : _cxx{"ccache g++"}
+Toolset::Toolset()
+    : _cxx{}
+    , _hasCcache{false}
+    , _flags{}
+    , _lateFlags{}
 {
 	auto cxx = std::getenv("CXX");
-	if (nullptr != cxx)
-		_cxx = cxx;
+	if (nullptr != cxx) {
+            // setting the C compiler in the environment overrides the default
+            // (and disables ccache because it might interfere with scan-build)
+            _cxx = cxx;
+	} else {
+	    if (0 == system("ccache --version >/dev/null 2>&1")) {
+		_cxx += "ccache ";
+		_hasCcache = true;
+	    } else {
+                std::cerr << PACKAGE_NAME << ": warning: cannot auto-detect "
+                                             "ccache (build will be slow)\n";
+            }
+
+	    if (0 == system("g++ --version >/dev/null 2>&1")) {
+		_cxx += "g++";
+	    } else if (0 == system("clang++ --version >/dev/null 2>&1")) {
+		_cxx += "clang++";
+	    } else {
+                std::cerr << PACKAGE_NAME
+                          << ": error: cannot auto-detect a C++ compiler\n";
+                throw ToolsetError{};
+	    }
+	}
 
 	auto debugger = Options::debugger();
 	if (!debugger.empty())
@@ -41,6 +67,22 @@ Toolset::~Toolset()
 
 void Toolset::pushFlag(std::string flag, FlagPosition position)
 {
+    // handle special flags that are intercepted by the Toolset class
+    // rather than being handed to the compiler/linker
+    if (hbcxx::startswith(flag, "--hbcxx-cxx=")) {
+	if (std::getenv("CXX"))
+	    return; // cxx: is overriden by environment
+
+	if (_hasCcache)
+	    _cxx = "ccache ";
+	else
+	    _cxx = "";
+
+	_cxx += flag.substr(sizeof("--hbcxx-cxx=")-1);
+
+	return;
+    }
+
     switch (position) {
     case FlagEarly:
 	_flags.push_front(std::move(flag));
