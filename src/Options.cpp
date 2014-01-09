@@ -13,12 +13,12 @@
 
 #include "Options.h"
 
-#include "string.h"
-
 #include <cstdlib>
 #include <iostream>
 
-using hbcxx::startswith;
+#include <boost/algorithm/string.hpp>
+
+using boost::starts_with;
 
 static struct {
     bool verbose;
@@ -60,17 +60,17 @@ bool Options::checkArgument(const std::string& arg)
 	return true;
     }
 
-    if (startswith(arg, "--hbcxx-debugger=")) {
+    if (starts_with(arg, "--hbcxx-debugger=")) {
 	optionStore.debugger = arg.substr(sizeof("--hbcxx-debugger=")-1);
 	return true;
     }
 
-    if (startswith(arg, "--hbcxx-executable=")) {
+    if (starts_with(arg, "--hbcxx-executable=")) {
 	optionStore.executable = arg.substr(sizeof("--hbcxx-executable=")-1);
 	return true;
     }
 
-    if (startswith(arg, "--hbcxx-O")) {
+    if (starts_with(arg, "--hbcxx-O")) {
 	optionStore.optimization = arg.substr(sizeof("--hbcxx-O")-1);
 	return true;
     }

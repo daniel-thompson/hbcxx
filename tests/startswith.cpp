@@ -17,15 +17,15 @@
 /*!
  * \file startswith.cpp
  *
- * Unit test for startswith().
+ * Unit test for one of the batteries we can the distro to include.
  */
 
-#include "../src/string.h"
+#include <boost/algorithm/string.hpp>
 
 #include <cassert>
 #include <iostream>
 
-using namespace hbcxx;
+using boost::starts_with;
 
 template<class C, class D>
 void do_test(const C& full, const D& sub, bool expected)
@@ -33,9 +33,9 @@ void do_test(const C& full, const D& sub, bool expected)
     using std::cout;
     using std::endl;
 
-    bool result = startswith(full, sub);
+    bool result = starts_with(full, sub);
 #ifndef DISABLE_SHOW
-    cout << "startswith(\"" << full << "\", \"" << sub << "\")  ->  ";
+    cout << "starts_with(\"" << full << "\", \"" << sub << "\")  ->  ";
     if (result == expected)
 	cout << (result ? "true" : "false") << endl;
     else

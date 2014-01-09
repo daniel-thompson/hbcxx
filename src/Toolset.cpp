@@ -17,7 +17,8 @@
 #include <iostream>
 #include <utility>
 
-#include "string.h"
+#include <boost/algorithm/string.hpp>
+
 #include "CompilationUnit.h"
 #include "Options.h"
 
@@ -69,7 +70,7 @@ void Toolset::pushFlag(std::string flag, FlagPosition position)
 {
     // handle special flags that are intercepted by the Toolset class
     // rather than being handed to the compiler/linker
-    if (hbcxx::startswith(flag, "--hbcxx-cxx=")) {
+    if (boost::starts_with(flag, "--hbcxx-cxx=")) {
 	if (std::getenv("CXX"))
 	    return; // cxx: is overriden by environment
 

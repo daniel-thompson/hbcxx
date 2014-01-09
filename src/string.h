@@ -74,38 +74,6 @@ C shlex(std::string s)
     return result;
 }
 
-/*!
- * Test if the first sequence starts with the second sequence.
- *
- * \return true, if full starts with sub
- */
-template <class C>
-bool startswith(const C& full, const C& sub)
-{
-    auto iFull = std::begin(full);
-    auto iSub = std::begin(sub);
+}; // namespace hpcxx
 
-    while (iFull != std::end(full) && iSub != std::end(sub)) {
-	if (*iFull != *iSub)
-	    return false;
-	
-	++iFull;
-	++iSub;
-    }
-
-    return iFull != std::end(full) || iSub == std::end(sub);
-}
-
-inline bool startswith(const std::string& full, const char *sub)
-{
-    return startswith(full, std::string{sub});
-}
-
-inline bool startswith(const char *full, const char *sub)
-{
-    return startswith(std::string{full}, sub);
-}
-
-}; // namespace hpcpp
-
-#endif // HPCPP_STRING_H_
+#endif // HPCXX_STRING_H_

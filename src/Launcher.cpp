@@ -15,7 +15,8 @@
 
 #include <utility>
 
-#include "string.h"
+#include <boost/algorithm/string.hpp>
+
 #include "DefaultLauncher.h"
 #include "GdbLauncher.h"
 #include "Options.h"
@@ -33,7 +34,7 @@ std::unique_ptr<Launcher> makeLauncher()
 	return std::unique_ptr<Launcher>{new GdbLauncher{}};
 
     if (debugger == "valgrind"
-               || hbcxx::startswith(debugger, "valgrind "))
+               || boost::starts_with(debugger, "valgrind "))
         return std::unique_ptr<Launcher>{new WrapperLauncher{debugger}};
 
     return std::unique_ptr<Launcher>{new NoArgsLauncher{debugger}};
