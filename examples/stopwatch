@@ -1,0 +1,57 @@
+#!/usr/bin/env hbcxx
+
+/*
+ * stopwatch
+ *
+ * Part of hbcxx - executable C++ source code
+ *
+ * Copyright (C) 2014 Daniel Thompson <daniel@redfelineninja.org.uk>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
+/*!
+ * \file stopwatch
+ *
+ * This example implements a stopwatch with second precision.
+ *
+ * This is implemented in pure C++11 (no boost, no POSIX) although
+ * to be fluid it does require the implementation to offer both
+ * steady_clock and sleep_until with have fine enough resolution. Since
+ * we need no better than 10ms (and even 100ms would be OK) there are
+ * few practical implementations where this should not be the case.
+ */
+
+#include <chrono>
+#include <iostream>
+#include <iomanip>
+#include <thread>
+
+namespace chrono = std::chrono;
+
+int main()
+{
+    using chrono::steady_clock;
+
+    auto start = steady_clock::now();
+    auto wakeup = start;
+
+    while (true) {
+	auto now = steady_clock::now();
+	auto elapsed = chrono::duration_cast<chrono::seconds>(now - start);
+	auto mins = chrono::duration_cast<chrono::minutes>(elapsed);
+	auto secs = elapsed - mins;
+
+        std::cout << '\r'
+	          << std::setw(2) << std::setfill('0') << mins.count() 
+		  << ':' 
+		  << std::setw(2) << std::setfill('0') << secs.count();
+        std::cout.flush();
+
+	wakeup += chrono::seconds{1};
+	std::this_thread::sleep_until(wakeup);
+    }
+}
