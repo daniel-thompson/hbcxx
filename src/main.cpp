@@ -11,6 +11,8 @@
  * (at your option) any later version.
  */
 
+#include <signal.h>
+
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -22,6 +24,7 @@
 #include <boost/filesystem.hpp>
 
 #include "string.h"
+#include "system.h"
 #include "CompilationUnit.h"
 #include "Launcher.h"
 #include "Options.h"
@@ -48,7 +51,7 @@ static std::string handleArguments(std::list<std::string>& args, Toolset& toolse
 	// if the file exists we will try to execute it
 	if (file::exists(arg))
 	    return arg;
-	
+
 	// otherwise we pass on the flag to the toolchain
 	toolset.pushFlag(arg);
     }
@@ -103,10 +106,11 @@ static int run(std::list<std::string>& args)
 
     auto launcher = makeLauncher();
     auto& primaryUnit = compilationUnits.front();
+
     auto res = launcher->launch(primaryUnit, args);
     if (!Options::saveTemps())
         file::remove(primaryUnit.getExecutableFileName());
-    return res;
+    return hbcxx::propagate_status(res);
 }
 
 int main(int argc, const char* argv[])
@@ -120,7 +124,7 @@ int main(int argc, const char* argv[])
 	    args.push_back(std::move(arg));
     }
 
-    // command line tools can have *very* simple stop the world 
+    // command line tools can have *very* simple stop the world
     // exception handling models (or they could just call exit())
     try {
 	return run(args);

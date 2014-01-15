@@ -16,26 +16,43 @@
 
 #include "system.h"
 
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include <cassert>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
 #include <sstream>
 #include <memory>
 #include <iostream>
+#include <system_error>
 #include <vector>
 
 static int forkExecAndWait(const char *path, const char* const argv[])
 {
+    // ignore SIGINT and SIGQUIT (this is intended only for the parent process
+    // but must be applied before the ::fork to avoid races)
+    struct sigaction act {};
+    act.sa_handler = SIG_IGN;
+    (void) sigaction(SIGINT, &act, NULL);
+    (void) sigaction(SIGQUIT, &act, NULL);
+
     auto childPid = fork();
     if (-1 == childPid)
 	return -1;
 
     if (0 == childPid) {
-	(void) execv(path, const_cast<char**>(argv));
+	// restore normal signal handling within the child
+        act.sa_handler = SIG_DFL;
+        (void) sigaction(SIGINT, &act, NULL);
+        (void) sigaction(SIGQUIT, &act, NULL);
+        (void) execv(path, const_cast<char**>(argv));
 	std::exit(127); // ::execv returns only on error
     }
 
@@ -76,3 +93,32 @@ int hbcxx::system(const std::string& command, const std::list<std::string>& args
     return forkExecAndWait(path, argv.data());
 }
 
+int hbcxx::propagate_status(int status)
+{
+    // -1 means failure to fork or wait for the child process
+    if (-1 == status)
+	throw std::system_error{std::error_code{errno, std::system_category()}};
+
+    // propagate the signal handling decision of the child process to
+    // our caller if the sub-process terminated abnormally.
+    if (WIFSIGNALED(status)) {
+	auto signum = WTERMSIG(status);
+
+	if (signum == SIGQUIT) {
+	    // the child has dumped core... make sure we avoid this
+	    struct rlimit rlim;
+	    (void) getrlimit(RLIMIT_CORE, &rlim);
+	    rlim.rlim_cur = 0;
+	    (void) setrlimit(RLIMIT_CORE, &rlim);
+	}
+
+	// ensure normal signal handling before propagating the signal
+        struct sigaction act {};
+        act.sa_handler = SIG_DFL;
+        (void) sigaction(signum, &act, NULL);
+	(void) kill(getpid(), signum);
+    }
+
+    assert(WIFEXITED(status));
+    return WEXITSTATUS(status);
+}

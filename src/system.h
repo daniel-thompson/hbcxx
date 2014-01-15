@@ -29,12 +29,25 @@ int system(const std::string& command, std::unique_ptr<std::stringstream>& io);
 /*!
  * A std::system() workalike without shell argument parsing.
  *
- * \todo We cannot call ::execv (too many raw C headers) from here but 
+ * \todo We cannot call ::execv (too many raw C headers) from here but
  *       we could translate args into a vector<const char *> and pass that
  *       to a non-template helper function. However I would prefer to wait
  *       for concepts to come along in C++14 before doing this.
  */
 int system(const std::string& command, const std::list<std::string>& args);
+
+/*!
+ * Propagate signals or return exit code.
+ *
+ * Examine a status value returned from ::wait and its friends.
+ *
+ * If the status reflects abnormal process termination due to signal
+ * handling then propagate this (by abnormally terminating the current
+ * process).
+ *
+ * \returns the exit status of the child
+ */
+int propagate_status(int res);
 
 }; // namespace hbcxx
 
