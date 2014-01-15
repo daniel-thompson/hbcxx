@@ -419,8 +419,10 @@ executable be linked or run.
 Bugs and missing features
 -------------------------
 
- * Does not check the compiler support -std=c++11
+ * Does not check the compiler support -std=c++11 (use -fsyntax-only or
+   -### trick to go fast)
  * Organisation of the ~/.hbcxx directory lacks elegance.
+ * <alsa/asoundlib.h> can be used to imply "requires: alsa"
  * Executables get the wrong value passed as argument 0 when run
    using --hbcxx-debugger. They are passed the name of the linked
    executable rather than the underlying source file.
