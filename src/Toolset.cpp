@@ -14,13 +14,17 @@
 #include "Toolset.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <utility>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 #include "CompilationUnit.h"
 #include "Options.h"
+
+namespace file = boost::filesystem;
 
 Toolset::Toolset()
     : _cxx{}
@@ -42,9 +46,9 @@ Toolset::Toolset()
                                              "ccache (build will be slow)\n";
             }
 
-	    if (0 == system("g++ --version >/dev/null 2>&1")) {
+	    if (cxx11Check("g++")) {
 		_cxx += "g++";
-	    } else if (0 == system("clang++ --version >/dev/null 2>&1")) {
+	    } else if (cxx11Check("clang++")) {
 		_cxx += "clang++";
 	    } else {
                 std::cerr << PACKAGE_NAME
@@ -141,4 +145,33 @@ void Toolset::link(const std::list<CompilationUnit>& units)
     auto res = system(command.c_str());
     if (0 != res)
 	throw ToolsetError{};
+}
+
+bool Toolset::cxx11Check(std::string cxx)
+{
+    auto home = std::getenv("HOME");
+    if (nullptr == home)
+	throw ToolsetError{};
+
+    auto filename = file::path{home};
+    filename /= ".hbcxx";
+    filename /= "cxx11check.cpp";
+
+    (void) file::create_directories(filename.parent_path());
+
+    // this small C++ program exercises three critical C++11 features
+    // (auto types, smart pointers and lambdas) whilst using sufficiently
+    // few templates to allow fast syntax checking.
+    std::ofstream f{filename.native()};
+    f << "#include <memory>\n"
+      << "int main()\n"
+      << "{\n"
+      << "    auto p = std::unique_ptr<int>{new int{0}};\n"
+      << "    auto deref = [&](){ return *p; };\n"
+      << "    return deref();\n"
+      << "}\n";
+    f.close();
+
+    auto command = cxx + " -std=c++11 -c " + filename.native() + " >/dev/null 2>&1";
+    return (0 == system(command.c_str()));
 }

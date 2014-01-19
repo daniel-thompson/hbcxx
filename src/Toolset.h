@@ -47,6 +47,8 @@ public:
     void link(const std::list<CompilationUnit>& units);
 
 private:
+    bool cxx11Check(std::string cxx);
+
     std::string _cxx;
     bool _hasCcache;
     std::list<std::string> _flags;
