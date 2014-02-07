@@ -419,10 +419,8 @@ executable be linked or run.
 Bugs and missing features
 -------------------------
 
- * Organisation of the ~/.hbcxx directory lacks elegance.
  * Compiler auto-detection does not cache its results in +$HOME/.hbcxx+
    (penalizing startup time).
- * <alsa/asoundlib.h> can be used to imply "requires: alsa"
  * Executables get the wrong value passed as argument 0 when run
    using --hbcxx-debugger. They are passed the name of the linked
    executable rather than the underlying source file.

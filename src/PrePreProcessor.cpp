@@ -244,11 +244,26 @@ std::string PrePreProcessor::findSourceFile(const std::string& header)
  */
 std::string PrePreProcessor::checkForMagicIncludes(const std::string& header)
 {
-    // TODO: This is woefully incomplete...
+    // Automatically include boost libraries
+    // TODO: Boost doesn't have nearly as many libraries as it does headers
+    //       but nevertheless this list is woefully incomplete...
     if (header == "boost/filesystem.hpp")
 	return "-lboost_filesystem -lboost_system";
     if (header == "boost/regex.hpp")
 	return "-lboost_regex";
+
+    // Recognise ALSA headers and deploy pkg-config
+    if (header == "alsa/asoundlib.h" || header == "asoundlib.h") {
+	try {
+            return handleRequires("alsa");
+	}
+	catch (PrePreProcessorError &e) {
+            // Suppress propagation of errors from handleRequires(). This
+            // avoids hbcxx becoming unusable if the header is included but
+            // alsa is not integrated with pkg-config. The error will still
+            // be reported but it will become non-fatal.
+        }
+    }
 
     return std::string{};
 }
