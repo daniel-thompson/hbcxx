@@ -40,3 +40,6 @@ tests/*.trs
 # Derived objects
 src/hbcxx
 README.html
+git-push-hbcxx
+hbcxx-logo.png
+hbcxx-logo.svg

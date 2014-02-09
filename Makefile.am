@@ -47,6 +47,7 @@ AM_TESTS_ENVIRONMENT = \
   PATH=$(top_builddir)/src:$$PATH; export PATH;
 
 EXTRA_DIST = \
+	ChangeLog \
 	COPYING \
 	README.asciidoc \
 	README.html \

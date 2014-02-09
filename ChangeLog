@@ -1,0 +1,17 @@
+hbcxx-0.8
+=========
+
+Daniel Thompson (13):
+      Provide sufficient links to allow the README to act as the SF homepage.
+      Implement --hbcxx-executable=<filename>
+      Implement cxx: directive and related auto-detection of tools.
+      Enable -Weffc++ where it is supported.
+      Replace hbcxx::startswith with boost::starts_with
+      Include a stopwatch example.
+      Fix return code and signal propagation from the child process.
+      Add to the TODO list.
+      Improve automatic compiler checks.
+      Provide an example demonstrating automatic source code discovery.
+      Provide a "fun" example to play sound.
+      Recognise ALSA headers and deploy pkg-config automatically.
+
