@@ -42,6 +42,11 @@ TESTS = \
 	tests/system.cpp \
 	tests/touch.cpp
 
+EXAMPLES = \
+	examples/beep \
+	examples/include examples/libzero.cpp examples/libzero.h \
+	examples/stopwatch
+
 AM_TESTS_ENVIRONMENT = \
 ## hbcxx must be on the PATH for the test scripts to find it
   PATH=$(top_builddir)/src:$$PATH; export PATH;
@@ -51,6 +56,7 @@ EXTRA_DIST = \
 	COPYING \
 	README.asciidoc \
 	README.html \
+	$(EXAMPLES) \
 	$(TESTS)
 
 CLEANFILES =
