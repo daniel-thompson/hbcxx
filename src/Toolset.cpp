@@ -153,16 +153,17 @@ bool Toolset::cxx11Check(std::string cxx)
     if (nullptr == home)
 	throw ToolsetError{};
 
-    auto filename = file::path{home};
-    filename /= ".hbcxx";
-    filename /= "cxx11check.cpp";
+    auto stem = file::path{home};
+    stem /= ".hbcxx";
+    auto cxxfile = stem / "cxx11check.cpp";
+    auto objfile = stem / "cxx11check.o";
 
-    (void) file::create_directories(filename.parent_path());
+    (void) file::create_directories(cxxfile.parent_path());
 
     // this small C++ program exercises three critical C++11 features
     // (auto types, smart pointers and lambdas) whilst using sufficiently
     // few templates to allow fast syntax checking.
-    std::ofstream f{filename.native()};
+    std::ofstream f{cxxfile.native()};
     f << "#include <memory>\n"
       << "int main()\n"
       << "{\n"
@@ -172,6 +173,8 @@ bool Toolset::cxx11Check(std::string cxx)
       << "}\n";
     f.close();
 
-    auto command = cxx + " -std=c++11 -c " + filename.native() + " >/dev/null 2>&1";
+    auto command = cxx +
+                   " -std=c++11 -c " + cxxfile.native() +
+                              " -o " + objfile.native(); // + " >/dev/null 2>&1";
     return (0 == system(command.c_str()));
 }
