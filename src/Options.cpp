@@ -89,8 +89,9 @@ void Options::showUsage()
 << "the command line.\n"
 << '\n'
 << "  --hbcxx-debugger=DBG    Use DBG to debug the program\n"
-<< "  --hbcxx-save-temps      Do not delete temporary files\n"
+<< "  --hbcxx-executable=EXE  Write executable file to EXE, then exit\n"
 << "  --hbcxx-help            Show this help, then exit\n"
+<< "  --hbcxx-save-temps      Do not delete temporary files\n"
 << "  --hbcxx-Ox              Override the optimization level, set to x\n"
 << "  --hbcxx-verbose         Show commands as they are executed\n"
 << "  --hbcxx-version         Show hbcxx version information, then exit\n";
