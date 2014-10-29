@@ -25,14 +25,10 @@ AM_PROG_AR
 AC_PROG_RANLIB
 
 AX_CFLAGS_WARN_ALL
-AX_APPEND_COMPILE_FLAGS([-fsanitize=address])
-AX_APPEND_COMPILE_FLAGS([-fno-omit-frame-pointer])
 
 AC_LANG([C++])
 AX_CXXFLAGS_WARN_ALL
 AX_APPEND_COMPILE_FLAGS([-Weffc++])
-AX_APPEND_COMPILE_FLAGS([-fsanitize=address])
-AX_APPEND_COMPILE_FLAGS([-fno-omit-frame-pointer])
 
 AC_CHECK_HEADER([boost/filesystem.hpp], [], [
   AC_MSG_ERROR([unable to find the boost filesystem header])
