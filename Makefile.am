@@ -36,6 +36,8 @@ src_hbcxx_SOURCES = \
 # it first (modern automake parellizes the testing)
 TESTS = \
 	tests/self-hosting-test \
+	tests/empty.cpp \
+	tests/flags.cpp \
 	tests/shlex.cpp \
 	tests/source.cpp \
 	tests/startswith.cpp \
