@@ -24,6 +24,7 @@
 exec hbcxx \
     '-DPACKAGE_NAME="self-hosting-test"' \
     '-DPACKAGE_STRING="self-hosting-test 0.0"' \
+    --hbcxx-verbose \
     $top_srcdir/src/main.cpp \
     --help
 
