@@ -426,9 +426,6 @@ Bugs and missing features
    executable rather than the underlying source file.
  * The hash bang directive prefix string, +//!#+, cannot appear in the source
    for any purpose other than parsing by hbcxx (including within strings).
- * Local headers (those included using double quotes and checked for
-   related source files, see Include file handling, above) are not
-   currently pre-pre-processed to detect other related source files.
  * Can only generate wholly dynamic (default) or wholly static
    (+hbcxx -static <filename>+) executables (wholly static executables
    are strongly discouraged by the GNU glibc maintainers). The capacity to

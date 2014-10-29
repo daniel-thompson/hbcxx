@@ -38,6 +38,8 @@ TESTS = \
 	tests/self-hosting-test \
 	tests/empty.cpp \
 	tests/flags.cpp \
+	tests/include.cpp \
+	tests/indirect.cpp \
 	tests/shlex.cpp \
 	tests/source.cpp \
 	tests/startswith.cpp \

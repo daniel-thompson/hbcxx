@@ -94,6 +94,8 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
                 assert(pendingDirective);
                 pendingDirective = false;
 
+		if (Options::verbose())
+		    std::cerr << "hbcxx: found " << match[1] << '\n';
                 unit.pushFlags(match[1]);
             }
 
@@ -124,7 +126,15 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
                     extraUnits.emplace_back(sourceFile);
             }
 
-            // phase 6: identify "magic" includes
+	    // phase 6: pre-pre-process local includes
+            if (re::regex_search(line, match, localIncludeRegex)) {
+                auto includeFile = match[1];
+		auto discoveredUnits = processLocalIncludeFile(includeFile, unit);
+		for (auto& unit : discoveredUnits)
+		    extraUnits.emplace_back(unit);
+	    }
+
+            // phase 7: identify "magic" includes
             if (re::regex_search(line, match, systemIncludeRegex)) {
                 auto includeFile = match[1];
                 auto extraFlags = checkForMagicIncludes(includeFile);
@@ -132,14 +142,14 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
                     unit.pushFlags(extraFlags);
             }
 
-	    // phase 7: identify interpreter directives
+	    // phase 8: identify interpreter directives
 	    if (re::regex_search(line, interpreterRegex)) {
                 assert(pendingDirective);
                 pendingDirective = false;
 	    }
 		
 
-            // phase 8: error reporting
+            // phase 9: error reporting
             if (pendingDirective) {
                 auto found = re::regex_search(line, match, hashBangRegex);
                 // we are *re*matching so this cannot fail
@@ -233,6 +243,30 @@ std::string PrePreProcessor::findSourceFile(const std::string& header)
     }
 
     return std::string{};
+}
+
+std::list<CompilationUnit> PrePreProcessor::processLocalIncludeFile(
+		const std::string& header,
+		CompilationUnit &parent)
+{
+    auto headerPath = file::path{header};
+
+    if (headerPath.is_relative()) {
+	auto unitPath = file::path{_inputFileName};
+	headerPath = unitPath.parent_path() / headerPath;
+	if (file::exists(headerPath)) {
+	    auto unit = CompilationUnit{headerPath.native()};
+	    auto res = process(unit);
+	    unit.removeTemporaryFiles();
+	    for (auto& f : unit.getFlags())
+		    parent.pushFlags(f);
+	    // No need to copy private flags because there is no compilation
+	    // unit to apply them to
+	    return res;
+	}
+    }
+
+    return std::list<CompilationUnit>{};
 }
 
 /*!

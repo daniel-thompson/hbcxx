@@ -30,6 +30,9 @@ private:
     std::string handleRequires(const std::string& requires);
     std::string handleSourceDirective(const std::string& requires);
     std::string findSourceFile(const std::string& header);
+    std::list<CompilationUnit> processLocalIncludeFile(
+		    const std::string& header,
+		    CompilationUnit& parent);
     std::string checkForMagicIncludes(const std::string& header);
 
     std::string _inputFileName;
