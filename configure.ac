@@ -4,7 +4,7 @@ dnl There's little point in allowing support for older versions of autoconf.
 dnl Autoconf 2.69 is what ships in Fedora 18 and Debian Wheezy (both of which
 dnl are too old to have sufficient C++11 support to run hbcxx).
 AC_PREREQ(2.69)
-AC_INIT(hbcxx, 0.9)
+AC_INIT(hbcxx, 1.0)
 
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE([1.12 silent-rules foreign subdir-objects -Wall])

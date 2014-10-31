@@ -46,6 +46,10 @@ TESTS = \
 	tests/system.cpp \
 	tests/touch.cpp
 
+TEST_SUPPORT = \
+	tests/empty.h \
+	tests/indirect.h
+
 EXAMPLES = \
 	examples/beep \
 	examples/include examples/libzero.cpp examples/libzero.h \
@@ -61,7 +65,7 @@ EXTRA_DIST = \
 	README.asciidoc \
 	README.html \
 	$(EXAMPLES) \
-	$(TESTS)
+	$(TESTS) $(TEST_SUPPORT)
 
 CLEANFILES =
 MAINTAINERCLEANFILES =
