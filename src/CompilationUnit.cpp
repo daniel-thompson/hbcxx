@@ -19,6 +19,7 @@
 
 #include "filesystem.h"
 #include "string.h"
+#include "system.h"
 #include "Options.h"
 #include "PrePreProcessor.h"
 
@@ -66,16 +67,17 @@ CompilationUnit::CompilationUnit(std::string fname)
     , _flags{}
     , _privateFlags{}
 {
+    auto unique = hbcxx::unique();
     auto original = file::path{fname};
     auto parent = original.parent_path();
-    auto candidate = file::path{_originalFileName + ".cpp"};
+    auto candidate = file::path{_originalFileName + unique + ".cpp"};
 
     // improve the candidate file name if needed
     auto extension = original.extension();
     for (auto sourceExtension : {".cpp", ".c++", ".C", ".cc", ".c"}) {
         if (extension == sourceExtension) {
             auto filename = parent / original.stem();
-            filename += "-hbcxx";
+            filename += unique;
             filename += extension;
 	    candidate = filename;
 	    break;

@@ -22,6 +22,11 @@
 namespace hbcxx {
 
 /*!
+ * Get a string unique(ish) to this invokation of hbcxx.
+ */
+const std::string& unique(void);
+
+/*!
  * A std::system() workalike that captures the subprocess' standard output.
  */
 int system(const std::string& command, std::unique_ptr<std::stringstream>& io);

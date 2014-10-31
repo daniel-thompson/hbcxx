@@ -64,6 +64,12 @@ static int forkExecAndWait(const char *path, const char* const argv[])
     return res;
 }
 
+const std::string& hbcxx::unique(void)
+{
+    static auto uniq = std::string{"-hbcxx-"} + std::to_string(getpid());
+    return uniq;
+}
+
 int hbcxx::system(const std::string& command, std::unique_ptr<std::stringstream>& output)
 {
     FILE *p = popen(command.c_str(), "r");
