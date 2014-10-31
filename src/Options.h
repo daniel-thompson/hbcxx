@@ -20,6 +20,7 @@ namespace Options {
 
 bool verbose();
 bool saveTemps();
+const std::string& cxx();
 const std::string& debugger();
 const std::string& executable();
 const std::string& optimization();
@@ -30,6 +31,11 @@ const std::string& optimization();
  * \returns true if the argument is a hash bang argument, false otherwise.
  */
 bool checkArgument(const std::string& args);
+
+/*!
+ * Read arguments from a file.
+ */
+void parseOptionsFile(const std::string& fname);
 
 void showUsage();
 

@@ -173,6 +173,11 @@ arguments in the following way (each of which is equivalent):
   ./main.cpp --hbcxx-verbose --help
   ./main.cpp --help --hbcxx-verbose
 
+Before processing the command line arguments are also read from
++.hbcxx/hbcxxrc+. This can be used to set defaults such as the
+default compiler and optimization level. For arguments read from
+the config file the +--hbcxx-+ prefix is optional.
+
 The following hash bang arguments may be supplied.
 
   --hbcxx-version
@@ -218,6 +223,15 @@ NOTE: When an debugger is selected the -g flag will automatically be
 Forcibly alter the optimization level by adding -Ox after all other flags.
 This is typically used to forcibly disable optimization to make symbolic
 debugging easier.
+
+  --hbcxx-cxx=<compiler>
+
+Use <compiler> to compile and link the executable. On systems with both
+g++ and clang++ present on the command line this option can be used to
+choose the compiler that is used.
+
+Normally this option is set from +.hbcxx/hbcxxrc+ rather than directly on
+the command line.
 
 Include file handling
 ---------------------
@@ -419,8 +433,6 @@ executable be linked or run.
 Bugs and missing features
 -------------------------
 
- * Compiler auto-detection does not cache its results in +$HOME/.hbcxx+
-   (penalizing startup time).
  * Executables get the wrong value passed as argument 0 when run
    using --hbcxx-debugger. They are passed the name of the linked
    executable rather than the underlying source file.

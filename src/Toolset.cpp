@@ -37,6 +37,9 @@ Toolset::Toolset()
             // setting the C compiler in the environment overrides the default
             // (and disables ccache because it might interfere with scan-build)
             _cxx = cxx;
+	} else if (!Options::cxx().empty()) {
+	    // load the default from the rc file
+	    _cxx = Options::cxx();
 	} else {
 	    if (0 == system("ccache --version >/dev/null 2>&1")) {
 		_cxx += "ccache ";
@@ -55,7 +58,14 @@ Toolset::Toolset()
                           << ": error: cannot auto-detect a C++ compiler\n";
                 throw ToolsetError{};
 	    }
-	}
+
+	    // cache the results
+	    auto home = std::getenv("HOME");
+            auto rcfname = file::path{home ? home : nullptr} / ".hbcxx"
+                          / "hbcxxrc";
+	    std::ofstream rcfile{rcfname.native(), std::ios_base::app};
+	    rcfile << "cxx=" << _cxx << '\n';
+        }
 
 	auto debugger = Options::debugger();
 	if (!debugger.empty())

@@ -64,6 +64,10 @@ static std::string handleArguments(std::list<std::string>& args, Toolset& toolse
 
 static int run(std::list<std::string>& args)
 {
+    auto home = std::getenv("HOME");
+    auto rcfile = file::path{home ? home : ""} / ".hbcxx" / "hbcxxrc";
+    Options::parseOptionsFile(rcfile.native());
+
     auto ppp = PrePreProcessor{};
     auto toolset = Toolset{};
 

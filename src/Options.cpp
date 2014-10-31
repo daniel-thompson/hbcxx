@@ -14,15 +14,18 @@
 #include "Options.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
 
 using boost::starts_with;
+using boost::trim_left;
 
 static struct {
     bool verbose;
     bool saveTemps;
+    std::string cxx;
     std::string debugger;
     std::string executable;
     std::string optimization;
@@ -30,6 +33,7 @@ static struct {
 
 bool Options::verbose() { return optionStore.verbose; }
 bool Options::saveTemps() { return optionStore.saveTemps; }
+const std::string& Options::cxx() { return optionStore.cxx; }
 const std::string& Options::debugger() { return optionStore.debugger; }
 const std::string& Options::executable() { return optionStore.executable; }
 const std::string& Options::optimization() { return optionStore.optimization; }
@@ -60,6 +64,11 @@ bool Options::checkArgument(const std::string& arg)
 	return true;
     }
 
+    if (starts_with(arg, "--hbcxx-cxx=")) {
+	optionStore.cxx = arg.substr(sizeof("--hbcxx-cxx=")-1);
+	return true;
+    }
+
     if (starts_with(arg, "--hbcxx-debugger=")) {
 	optionStore.debugger = arg.substr(sizeof("--hbcxx-debugger=")-1);
 	return true;
@@ -78,6 +87,35 @@ bool Options::checkArgument(const std::string& arg)
     return false;
 }
 
+void Options::parseOptionsFile(const std::string& fname)
+{
+    std::ifstream in{fname};
+    auto ln = std::string{};
+    auto option = std::string{};
+    auto lineno = 0;
+
+    while (in.good()) {
+	std::getline(in, ln);
+	lineno++;
+	trim_left(ln);
+
+        if (ln.empty() || starts_with(ln, "#"))
+	    continue;
+
+	/* extended shortened forms */
+	if (starts_with(ln, "hbcxx-"))
+	    option = std::string{"--"} + ln;
+	else if (!starts_with(ln, "--hbcxx-"))
+	    option = std::string{"--hbcxx-"} + ln;
+	else
+	    option = ln;
+
+	if (!checkArgument(option))
+            std::cerr << "WARNING: Bad option at line " << lineno << ": "
+                      << ln << '\n';
+    }
+}
+
 void Options::showUsage()
 {
     std::cout
@@ -88,6 +126,7 @@ void Options::showUsage()
 << "The following arguments control hbcxx and can be included anywhere on\n"
 << "the command line.\n"
 << '\n'
+<< "  --hbcxx-cxx=COMPILER    User COMPILER to compile and link the program\n"
 << "  --hbcxx-debugger=DBG    Use DBG to debug the program\n"
 << "  --hbcxx-executable=EXE  Write executable file to EXE, then exit\n"
 << "  --hbcxx-help            Show this help, then exit\n"
