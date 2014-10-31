@@ -4,8 +4,8 @@ hbcxx - Using "#!/usr/bin/env hbcxx" to make C++ source code executable
 Overview
 --------
 
-hbcxx uses the Unix +#!/path/to/interpreter+ technique to make C++ (and C) source
-code directly executable.
+hbcxx uses the Unix +#!/path/to/interpreter+ technique to make C++ (and C)
+source code directly executable.
 
 At the technical level hbcxx is a build system that automatically
 launches the resulting executable but, although this is strictly
@@ -21,10 +21,10 @@ about writing C++. It's faster and more fun, supports lambdas, has
 tools to simplify memory management and includes regular expressions
 out-of-the-box.
 
-Think of hbcxx as a tool to keep things fast and fun by putting off the moment you
-have to write a build system and install script. For simple programs, especially
-for quick and dirty personal toys, the day you have to write a proper build system
-may never come.
+Think of hbcxx as a tool to keep things fast and fun by putting off the moment
+you have to write a build system and install script. For simple programs,
+especially for quick and dirty personal toys, the day you have to write a
+proper build system may never come.
 
 Instead just copy your C++ source code into +$HOME/bin+. Try it. It works.
 
@@ -39,7 +39,8 @@ Features
  * Recognises the inclusion of boost header files and, where needed
    automatically links the relevant boost library.
  * pkg-config integration.
- * Direct access to underlying compiler flags (+-O3+, +-fsanitize=address+, +-g+).
+ * Direct access to underlying compiler flags (+-O3+, +-fsanitize=address+,
+   +-g+).
  * Honours the CXX environemnt variable to ensure clean integration with
    tools such as clang-analyzer's +scan-build+.
 
@@ -66,7 +67,8 @@ Where to get hbcxx
 ~~~~~~~~~~~~~~~~~~
 
 hbcxx is primarily hosted by http://sourceforge.net[sourceforge.net]
-and releases can be downloaded from: https://sourceforge.net/projects/hbcxx/files/ .
+and releases can be downloaded from:
+https://sourceforge.net/projects/hbcxx/files/ .
 
 Alternatively, if you prefer to acquire hbcxx using git then try:
 
@@ -148,11 +150,11 @@ Typically however hbcxx will be invoked automatically by the program loader
 due to an interpreter directive on the first line of the source file.
 For example, main.cpp might commence with the following line:
 
-  #!/usr/bin/env hbcxx -O2
+  #!/usr/bin/env hbcxx
 
-If main.cpp is executable then the following invocation is identical to our
-original example (because +/usr/bin/env+ uses the same PATH lookup as the
-command shell):
+If main.cpp is executable then then the following invocation is identical to
+executing +hbcxx main.cpp --help+ (because +/usr/bin/env+ uses the same PATH
+lookup as the command shell):
 
   ./main.cpp --help
 
