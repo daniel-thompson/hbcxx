@@ -13,6 +13,7 @@
 
 #include "CompilationUnit.h"
 
+#include <fstream>
 #include <utility>
 
 #include <boost/filesystem.hpp>
@@ -20,9 +21,11 @@
 #include "filesystem.h"
 #include "string.h"
 #include "system.h"
+#include "util.h"
 #include "Options.h"
 #include "PrePreProcessor.h"
 
+using hbcxx::make_unique;
 using hbcxx::shlex;
 namespace file = boost::filesystem;
 
@@ -31,16 +34,15 @@ namespace file = boost::filesystem;
  *
  * We work on the assumption that the user's own home directory
  * is always writeable. Strictly speaking this is not always
- * true but is true enough for most realistics cases.
+ * true but is true enough for most realistic cases.
+ *
+ * This function may create empty files as a side-effect. It should
+ * only be called when we know if will use the resulting file.
  */
 static file::path makeWriteable(const file::path& path)
 {
-    auto exists = file::exists(path);
-    if (hbcxx::touch(path.string())) {
-	if (!exists)
-            file::remove(path);
+    if (hbcxx::touch(path.string()))
         return file::path{path};
-    }
 
     auto home = std::getenv("HOME");
     if (nullptr == home)
@@ -52,18 +54,15 @@ static file::path makeWriteable(const file::path& path)
 
     (void) file::create_directories(filename.parent_path());
 
-    exists = file::exists(filename);
-    if (!hbcxx::touch(filename.string()))
-	throw PrePreProcessorError{};
+    if (hbcxx::touch(filename.string()))
+        return filename;
 
-    if (!exists)
-	file::remove(filename);
-
-    return filename;
+    throw PrePreProcessorError{};
 }
 
 CompilationUnit::CompilationUnit(const CompilationUnit& that)
-    : _compileInPlace{that._compileInPlace}
+    : _hasProcessedFile{that._hasProcessedFile}
+    , _hasObjectFile{that._hasObjectFile}
     , _originalFileName{that._originalFileName}
     , _processedFileName{that._processedFileName}
     , _flags{that._flags}
@@ -72,7 +71,8 @@ CompilationUnit::CompilationUnit(const CompilationUnit& that)
 }
 
 CompilationUnit::CompilationUnit(std::string fname)
-    : _compileInPlace{false}
+    : _hasProcessedFile{false}
+    , _hasObjectFile{false}
     , _originalFileName{fname}
     , _processedFileName{}
     , _flags{}
@@ -95,14 +95,7 @@ CompilationUnit::CompilationUnit(std::string fname)
         }
     }
 
-    // we will be forced to compile from a different directory so we must
-    // use -iquote to ensure relative paths to #include directives work as
-    // expected.
-    auto filename = makeWriteable(candidate);
-    if (filename != candidate)
-	pushPrivateFlags(std::string{"-iquote "} + parent.string());
-
-    _processedFileName = filename.string();
+    _processedFileName = candidate.string();
 }
 
 CompilationUnit::~CompilationUnit()
@@ -114,18 +107,37 @@ std::string CompilationUnit::getInputFileName() const
     return _originalFileName;
 }
 
+std::unique_ptr<std::ofstream> CompilationUnit::openProcessedFile()
+{
+    auto filename = makeWriteable(_processedFileName);
+
+    if (filename != _processedFileName) {
+	// if we are forced to compile from a different directory then we must
+	// use -iquote to ensure relative paths to #include directives work as
+        // expected.
+	auto original = file::path{_originalFileName};
+        pushPrivateFlags(std::string{"-iquote"}
+                         + original.parent_path().string());
+        _processedFileName = filename.string();
+    }
+
+    _hasProcessedFile = true;
+    return make_unique<std::ofstream>(_processedFileName);
+}
+
 std::string CompilationUnit::getProcessedFileName() const
 {
-    if (_compileInPlace)
+    if (!_hasProcessedFile)
 	return _originalFileName;
     return _processedFileName;
 }
 
-std::string CompilationUnit::getObjectFileName() const
+std::string CompilationUnit::getObjectFileName()
 {
     auto processed = file::path{_processedFileName};
     auto filename = processed.parent_path() / processed.stem();
     filename += ".o";
+    _hasObjectFile = true;
     return makeWriteable(filename).string();
 }
 
@@ -147,27 +159,21 @@ std::string CompilationUnit::getExecutableFileName() const
     return makeWriteable(original).string();
 }
 
-void CompilationUnit::setCompileInPlace(bool cip)
-{
-    _compileInPlace = cip;
-}
-
-void CompilationUnit::removeTemporaryFiles() const
+void CompilationUnit::removeTemporaryFiles()
 {
     if (Options::saveTemps())
 	return;
 
-    auto files = std::string{};
+    auto remove = [](const std::string& fname) {
+	file::remove(fname);
+	if (Options::verbose())
+		std::cerr << "hbcxx: removed " << fname << '\n';
+    };
 
-    if (!_compileInPlace) {
-        file::remove(getProcessedFileName());
-	files += std::string{' '} + getProcessedFileName();
-    }
-    file::remove(getObjectFileName());
-    files += std::string{' '} + getObjectFileName();
-
-    if (Options::verbose())
-	std::cerr << "hbcxx: removed temporary files:" << files << '\n';
+    if (_hasProcessedFile)
+	remove(getProcessedFileName());
+    if (_hasObjectFile)
+	remove(getObjectFileName());
 }
 
 const std::list<std::string>& CompilationUnit::getFlags() const

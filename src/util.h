@@ -19,6 +19,18 @@
 namespace hbcxx {
 
 /*!
+ * A std::make_unique() workalike.
+ *
+ * std::make_unique() was introduced in C++14 but hbcxx must target
+ * C++11 for a year to two longer...
+ */
+template<typename T, typename ...Args>
+std::unique_ptr<T> make_unique( Args&& ...args )
+{
+    return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
+}
+
+/*!
  * Utility class to run clean up at scope exit.
  *
  * Example:

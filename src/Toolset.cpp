@@ -119,7 +119,7 @@ void Toolset::pushFlags(const std::list<std::string>& flags, FlagPosition positi
 	pushFlag(flag, position);
 }
 
-void Toolset::compile(const CompilationUnit& unit)
+void Toolset::compile(CompilationUnit& unit)
 {
     auto command = _cxx + " -std=c++11 -c " + unit.getProcessedFileName()
                    + " -o " + unit.getObjectFileName();
@@ -138,7 +138,7 @@ void Toolset::compile(const CompilationUnit& unit)
 	throw ToolsetError{};
 }
 
-void Toolset::link(const std::list<CompilationUnit>& units)
+void Toolset::link(std::list<CompilationUnit>& units)
 {
     auto command = _cxx + " -std=c++11 -o "
                    + units.front().getExecutableFileName();

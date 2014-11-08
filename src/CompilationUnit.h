@@ -26,13 +26,12 @@ public:
     ~CompilationUnit();
 
     std::string getInputFileName() const;
+    std::unique_ptr<std::ofstream> openProcessedFile();
     std::string getProcessedFileName() const;
-    std::string getObjectFileName() const;
+    std::string getObjectFileName();
     std::string getExecutableFileName() const;
 
-    void setCompileInPlace(bool cip);
-
-    void removeTemporaryFiles() const;
+    void removeTemporaryFiles();
 
     const std::list<std::string>& getFlags() const;
     void pushFlags(std::string flags);
@@ -41,7 +40,8 @@ public:
     void pushPrivateFlags(std::string flags);
 
 private:
-    bool _compileInPlace;
+    bool _hasProcessedFile;
+    bool _hasObjectFile;
     std::string _originalFileName;
     std::string _processedFileName;
     std::list<std::string> _flags;

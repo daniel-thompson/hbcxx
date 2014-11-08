@@ -181,16 +181,11 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
 	throw PrePreProcessorError{};
 
     if (rewrite) {
-	auto outputFileName = unit.getProcessedFileName();
+	auto fp = unit.openProcessedFile();
+        *fp << out.str();
         if (Options::verbose())
-            std::cerr << "hbcxx: writing pre-pre-processor output to: "
-                      << outputFileName << '\n';
-        std::ofstream fout{outputFileName};
-        fout << out.str();
-    } else {
-            std::cerr << "hbcxx: set compile in place: "
-                      << _inputFileName << '\n';
-	unit.setCompileInPlace(true);
+            std::cerr << "hbcxx: wrote pre-pre-processor output to: "
+                      << unit.getProcessedFileName() << '\n';
     }
 
     _inputFileName = origInputFileName;

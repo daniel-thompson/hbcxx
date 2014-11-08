@@ -43,8 +43,8 @@ public:
     void pushFlags(const std::list<std::string>& flags,
                    FlagPosition position = FlagNormal);
 
-    void compile(const CompilationUnit& unit);
-    void link(const std::list<CompilationUnit>& units);
+    void compile(CompilationUnit& unit);
+    void link(std::list<CompilationUnit>& units);
 
 private:
     bool cxx11Check(std::string cxx);
