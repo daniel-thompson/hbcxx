@@ -15,10 +15,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <boost/filesystem.hpp>
 
 #include "system.h"
+#include "util.h"
 #include "CompilationUnit.h"
 #include "Options.h"
 
@@ -30,6 +32,7 @@ namespace re = std;
 namespace re = boost;
 #endif
 
+using hbcxx::ScopeExit;
 namespace file = boost::filesystem;
 
 PrePreProcessor::PrePreProcessor()
@@ -46,52 +49,55 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
 {
     auto extraUnits = std::list<CompilationUnit>{};
     auto failed = bool{false};
-
+    auto origInputFileName = _inputFileName; // process() can recurse
     _inputFileName = unit.getInputFileName();
     std::ifstream in{_inputFileName};
-    auto outputFileName = unit.getProcessedFileName();
-    std::ofstream out{outputFileName};
+    std::ostringstream out{};
 
     if (Options::verbose())
-        std::cerr << "hbcxx: prepreprocessing: " << _inputFileName
-                  << " -> " << outputFileName << '\n';
+        std::cerr << "hbcxx: prepreprocessing: " << _inputFileName << '\n';
 
-    // These regular expressions redundantly place square brackets around the
-    // hash character when it is found within the sequence / / # !. This is to
-    // allow the pre-pre-processor to operate over itself (that is, it prevents
-    // it from reporting an unknown directive error when run upon itself.
-    // 
-    // For similar reasons the rawHashBangRegex places the #! within a
-    // sub-expression (so the #! character sequence can be recalled without
-    // being a full / / # ! sequence).
     auto rawHashBangRegex = re::regex{"^([ \t]*)(#!)"};
-    auto hashBangRegex = re::regex{"//[#]![ \t]*(.*)$"};
-    auto interpreterRegex = re::regex{"//[#]![ \t]*/"};
-    auto flagsRegex = re::regex{"//[#]![ \t]*(-.*)$"};
-    auto directiveRegex = re::regex{"//[#]![ \t]*([a-zA-Z_]*)[ \t]*:[ \t]*(.*)$"};
+    auto hashBangRegex = re::regex{"^(.*)//#![ \t]*(.*)$"};
+    auto interpreterRegex = re::regex{"//#![ \t]*/"};
+    auto flagsRegex = re::regex{"//#![ \t]*(-.*)$"};
+    auto directiveRegex = re::regex{"//#![ \t]*([a-zA-Z_]*)[ \t]*:[ \t]*(.*)$"};
     auto localIncludeRegex = re::regex{"^[ \t]*#[ \t]*include[ \t][ \t]*\"([^\"]*)\""};
     auto systemIncludeRegex = re::regex{"^[ \t]*#[ \t]*include[ \t][ \t]*<([^\"]*)>"};
 
     auto line = std::string{};
+    auto origline = line;
     auto match = re::smatch{};
+    bool rewrite = false;
 
     _lineno = 0;
     out << "#line 1 \"" << _inputFileName << "\"\n";
 
     while (in.good()) {
-	std::getline(in, line);
+	std::getline(in, origline);
 	_lineno += 1;
 
 	try {
             // phase 1: make compilable by commenting out the #! directives
-            line = re::regex_replace(line, rawHashBangRegex, "$1//$2");
+            line = re::regex_replace(origline, rawHashBangRegex, "$1//$2");
 
             // phase 2: track whether a hash bang directive has been processed
-            auto pendingDirective = re::regex_search(line, hashBangRegex);
+            auto pendingDirective
+                = re::regex_search(line, match, hashBangRegex);
+            if (pendingDirective) {
+		auto leadIn = std::string{match[1]};
+                auto count
+                    = std::count_if(std::begin(leadIn), std::end(leadIn),
+                                    [](char c) { return c == '"'; });
+		// if there are an odd number of double quotes prior to the
+		// directive we assume that the directive appears within a
+		// string
+		if (count & 1)
+		    pendingDirective = false;
+            }
 
             // phase 3: process raw flags
-            if (re::regex_search(line, match, flagsRegex)) {
-                assert(pendingDirective);
+            if (pendingDirective && re::regex_search(line, match, flagsRegex)) {
                 pendingDirective = false;
 
 		if (Options::verbose())
@@ -100,8 +106,8 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
             }
 
             // phase 4: process directives
-            if (re::regex_search(line, match, directiveRegex)) {
-                assert(pendingDirective);
+            if (pendingDirective
+                && re::regex_search(line, match, directiveRegex)) {
                 pendingDirective = false;
 
                 auto directive = match[1];
@@ -143,19 +149,19 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
             }
 
 	    // phase 8: identify interpreter directives
-	    if (re::regex_search(line, interpreterRegex)) {
-                assert(pendingDirective);
+	    if (pendingDirective && re::regex_search(line, interpreterRegex)) {
                 pendingDirective = false;
 	    }
-		
+
 
             // phase 9: error reporting
             if (pendingDirective) {
                 auto found = re::regex_search(line, match, hashBangRegex);
                 // we are *re*matching so this cannot fail
-		assert(found == true); 
-                std::cerr << _inputFileName << ':' << _lineno
-                          << ":1: error: unknown directive: " << match[1]
+		assert(found == true);
+                std::cerr << _inputFileName << ':' << _lineno << ":"
+                          << std::string{match[1]}.size() + 1
+                          << ": error: unknown directive: " << match[2]
                           << std::endl;
                 failed = true;
             }
@@ -165,12 +171,29 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
 	    failed = true;
 	}
 
+	if (line != origline)
+	    rewrite = true;
+
         out << line << '\n';
     }
 
     if (failed)
 	throw PrePreProcessorError{};
 
+    if (rewrite) {
+	auto outputFileName = unit.getProcessedFileName();
+        if (Options::verbose())
+            std::cerr << "hbcxx: writing pre-pre-processor output to: "
+                      << outputFileName << '\n';
+        std::ofstream fout{outputFileName};
+        fout << out.str();
+    } else {
+            std::cerr << "hbcxx: set compile in place: "
+                      << _inputFileName << '\n';
+	unit.setCompileInPlace(true);
+    }
+
+    _inputFileName = origInputFileName;
     return extraUnits;
 }
 
@@ -256,8 +279,8 @@ std::list<CompilationUnit> PrePreProcessor::processLocalIncludeFile(
 	headerPath = unitPath.parent_path() / headerPath;
 	if (file::exists(headerPath)) {
 	    auto unit = CompilationUnit{headerPath.native()};
-	    auto res = process(unit);
-	    unit.removeTemporaryFiles();
+            ScopeExit cleanup{[&] { unit.removeTemporaryFiles(); }};
+            auto res = process(unit);
 	    for (auto& f : unit.getFlags())
 		    parent.pushFlags(f);
 	    // No need to copy private flags because there is no compilation

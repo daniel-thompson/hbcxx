@@ -438,8 +438,6 @@ Bugs and missing features
  * Executables get the wrong value passed as argument 0 when run
    using --hbcxx-debugger. They are passed the name of the linked
    executable rather than the underlying source file.
- * The hash bang directive prefix string, +//!#+, cannot appear in the source
-   for any purpose other than parsing by hbcxx (including within strings).
  * Can only generate wholly dynamic (default) or wholly static
    (+hbcxx -static <filename>+) executables (wholly static executables
    are strongly discouraged by the GNU glibc maintainers). The capacity to

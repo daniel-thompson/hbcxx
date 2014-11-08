@@ -30,6 +30,8 @@ public:
     std::string getObjectFileName() const;
     std::string getExecutableFileName() const;
 
+    void setCompileInPlace(bool cip);
+
     void removeTemporaryFiles() const;
 
     const std::list<std::string>& getFlags() const;
@@ -39,6 +41,7 @@ public:
     void pushPrivateFlags(std::string flags);
 
 private:
+    bool _compileInPlace;
     std::string _originalFileName;
     std::string _processedFileName;
     std::list<std::string> _flags;

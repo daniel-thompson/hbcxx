@@ -35,8 +35,12 @@ namespace file = boost::filesystem;
  */
 static file::path makeWriteable(const file::path& path)
 {
-    if (hbcxx::touch(path.string()))
-	return file::path{path};
+    auto exists = file::exists(path);
+    if (hbcxx::touch(path.string())) {
+	if (!exists)
+            file::remove(path);
+        return file::path{path};
+    }
 
     auto home = std::getenv("HOME");
     if (nullptr == home)
@@ -47,14 +51,20 @@ static file::path makeWriteable(const file::path& path)
     filename /= file::absolute(path);
 
     (void) file::create_directories(filename.parent_path());
+
+    exists = file::exists(filename);
     if (!hbcxx::touch(filename.string()))
 	throw PrePreProcessorError{};
+
+    if (!exists)
+	file::remove(filename);
 
     return filename;
 }
 
 CompilationUnit::CompilationUnit(const CompilationUnit& that)
-    : _originalFileName{that._originalFileName}
+    : _compileInPlace{that._compileInPlace}
+    , _originalFileName{that._originalFileName}
     , _processedFileName{that._processedFileName}
     , _flags{that._flags}
     , _privateFlags{that._privateFlags}
@@ -62,7 +72,8 @@ CompilationUnit::CompilationUnit(const CompilationUnit& that)
 }
 
 CompilationUnit::CompilationUnit(std::string fname)
-    : _originalFileName{fname}
+    : _compileInPlace{false}
+    , _originalFileName{fname}
     , _processedFileName{}
     , _flags{}
     , _privateFlags{}
@@ -105,6 +116,8 @@ std::string CompilationUnit::getInputFileName() const
 
 std::string CompilationUnit::getProcessedFileName() const
 {
+    if (_compileInPlace)
+	return _originalFileName;
     return _processedFileName;
 }
 
@@ -134,13 +147,27 @@ std::string CompilationUnit::getExecutableFileName() const
     return makeWriteable(original).string();
 }
 
+void CompilationUnit::setCompileInPlace(bool cip)
+{
+    _compileInPlace = cip;
+}
+
 void CompilationUnit::removeTemporaryFiles() const
 {
     if (Options::saveTemps())
 	return;
 
-    file::remove(getProcessedFileName());
+    auto files = std::string{};
+
+    if (!_compileInPlace) {
+        file::remove(getProcessedFileName());
+	files += std::string{' '} + getProcessedFileName();
+    }
     file::remove(getObjectFileName());
+    files += std::string{' '} + getObjectFileName();
+
+    if (Options::verbose())
+	std::cerr << "hbcxx: removed temporary files:" << files << '\n';
 }
 
 const std::list<std::string>& CompilationUnit::getFlags() const

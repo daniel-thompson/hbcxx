@@ -25,12 +25,14 @@
 
 #include "string.h"
 #include "system.h"
+#include "util.h"
 #include "CompilationUnit.h"
 #include "Launcher.h"
 #include "Options.h"
 #include "PrePreProcessor.h"
 #include "Toolset.h"
 
+using hbcxx::ScopeExit;
 namespace file = boost::filesystem;
 
 class ArgumentError : public std::exception {
@@ -76,6 +78,10 @@ static int run(std::list<std::string>& args)
 	return 1;
 
     auto compilationUnits = std::list<CompilationUnit>{primaryFile};
+    ScopeExit cleanup{[&] {
+        for (auto& unit : compilationUnits)
+            unit.removeTemporaryFiles();
+    }};
 
     for (auto& unit : compilationUnits) {
 	auto extraUnits = ppp.process(unit);
@@ -101,9 +107,7 @@ static int run(std::list<std::string>& args)
 	toolset.compile(unit);
 
     toolset.link(compilationUnits);
-
-    for (auto& unit : compilationUnits)
-        unit.removeTemporaryFiles();
+    cleanup.runEarly();
 
     if (!Options::executable().empty())
         return 0;
