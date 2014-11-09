@@ -27,6 +27,8 @@
 
 using hbcxx::make_unique;
 using hbcxx::shlex;
+using std::begin;
+using std::end;
 namespace file = boost::filesystem;
 
 /*!
@@ -183,8 +185,15 @@ const std::list<std::string>& CompilationUnit::getFlags() const
 
 void CompilationUnit::pushFlags(std::string flags)
 {
-    for (auto& flag : shlex(flags))
-	_flags.push_back(std::move(flag));
+    auto newFlags = shlex(flags);
+
+    // if the new flags contain anything new then we push the whole
+    // lot (this is needed because we are running with a single pass
+    // linker)
+    if (std::search(begin(_flags), end(_flags),
+		    begin(newFlags), end(newFlags)) == end(_flags))
+        for (auto& flag : newFlags)
+            _flags.push_back(std::move(flag));
 }
 
 const std::list<std::string>& CompilationUnit::getPrivateFlags() const
@@ -194,7 +203,13 @@ const std::list<std::string>& CompilationUnit::getPrivateFlags() const
 
 void CompilationUnit::pushPrivateFlags(std::string flags)
 {
-    for (auto& flag : shlex(flags))
-	_privateFlags.push_back(std::move(flag));
-}
+    auto newFlags = shlex(flags);
 
+    // if the new flags contain anything new then we push the whole
+    // lot (this is needed because we are running with a single pass
+    // linker)
+    if (std::search(begin(_flags), end(_flags),
+		    begin(newFlags), end(newFlags)) == end(_flags))
+        for (auto& flag : newFlags)
+            _privateFlags.push_back(std::move(flag));
+}

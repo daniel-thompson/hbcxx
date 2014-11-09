@@ -24,6 +24,8 @@
 #include "CompilationUnit.h"
 #include "Options.h"
 
+using std::begin;
+using std::end;
 namespace file = boost::filesystem;
 
 Toolset::Toolset()
@@ -115,6 +117,15 @@ void Toolset::pushFlag(std::string flag, FlagPosition position)
 
 void Toolset::pushFlags(const std::list<std::string>& flags, FlagPosition position)
 {
+    // If we are pushing the flags in the default position and the new flags
+    // already appear in an identical order we can skip these flags. Note that
+    // we do require all flags to be matched in order to avoid any problems
+    // due to single pass linking.
+    if (position == FlagNormal
+        && std::search(begin(_flags), end(_flags), begin(flags), end(flags))
+           != end(_flags))
+	return;
+
     for (auto flag : flags)
 	pushFlag(flag, position);
 }
