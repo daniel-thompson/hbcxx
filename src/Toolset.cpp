@@ -132,6 +132,9 @@ void Toolset::pushFlags(const std::list<std::string>& flags, FlagPosition positi
 
 void Toolset::compile(CompilationUnit& unit)
 {
+    if (unit.getIsHeader())
+        return;
+
     auto command = _cxx + " -std=c++11 -c " + unit.getProcessedFileName()
                    + " -o " + unit.getObjectFileName();
 
@@ -153,9 +156,11 @@ void Toolset::link(std::list<CompilationUnit>& units)
 {
     auto command = _cxx + " -std=c++11 -o "
                    + units.front().getExecutableFileName();
-    for (auto& i : units) {
-	command += ' ';
-        command += i.getObjectFileName();
+    for (auto& unit : units) {
+        if (unit.getIsHeader())
+            continue;
+        command += ' ';
+        command += unit.getObjectFileName();
     }
 
     for (const auto& flag : _flags)

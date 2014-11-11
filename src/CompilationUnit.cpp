@@ -65,6 +65,7 @@ static file::path makeWriteable(const file::path& path)
 CompilationUnit::CompilationUnit(const CompilationUnit& that)
     : _hasProcessedFile{that._hasProcessedFile}
     , _hasObjectFile{that._hasObjectFile}
+    , _isHeader{that._isHeader}
     , _originalFileName{that._originalFileName}
     , _processedFileName{that._processedFileName}
     , _flags{that._flags}
@@ -72,9 +73,10 @@ CompilationUnit::CompilationUnit(const CompilationUnit& that)
 {
 }
 
-CompilationUnit::CompilationUnit(std::string fname)
+CompilationUnit::CompilationUnit(std::string fname, FileType type)
     : _hasProcessedFile{false}
     , _hasObjectFile{false}
+    , _isHeader{type == HeaderFile}
     , _originalFileName{fname}
     , _processedFileName{}
     , _flags{}
@@ -113,6 +115,9 @@ std::unique_ptr<std::ofstream> CompilationUnit::openProcessedFile()
 {
     auto filename = makeWriteable(_processedFileName);
 
+    if (_isHeader)
+	throw PrePreProcessorError{};
+
     if (filename != _processedFileName) {
 	// if we are forced to compile from a different directory then we must
 	// use -iquote to ensure relative paths to #include directives work as
@@ -129,6 +134,9 @@ std::unique_ptr<std::ofstream> CompilationUnit::openProcessedFile()
 
 std::string CompilationUnit::getProcessedFileName() const
 {
+    if (_isHeader)
+	throw PrePreProcessorError{};
+
     if (!_hasProcessedFile)
 	return _originalFileName;
     return _processedFileName;
@@ -136,6 +144,9 @@ std::string CompilationUnit::getProcessedFileName() const
 
 std::string CompilationUnit::getObjectFileName()
 {
+    if (_isHeader)
+	throw PrePreProcessorError{};
+
     auto processed = file::path{_processedFileName};
     auto filename = processed.parent_path() / processed.stem();
     filename += ".o";
@@ -145,6 +156,9 @@ std::string CompilationUnit::getObjectFileName()
 
 std::string CompilationUnit::getExecutableFileName() const
 {
+    if (_isHeader)
+	throw PrePreProcessorError{};
+
     auto executable = Options::executable();
     if (!executable.empty())
 	return executable;
@@ -181,6 +195,16 @@ void CompilationUnit::removeTemporaryFiles()
 const std::list<std::string>& CompilationUnit::getFlags() const
 {
     return _flags;
+}
+
+bool CompilationUnit::getIsHeader() const
+{
+	return _isHeader;
+}
+
+void CompilationUnit::setIsHeader(bool isHeader)
+{
+	_isHeader = isHeader;
 }
 
 void CompilationUnit::pushFlags(std::string flags)

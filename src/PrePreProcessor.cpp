@@ -127,20 +127,21 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
             // phase 5: identify local includes
             if (re::regex_search(line, match, localIncludeRegex)) {
                 auto includeFile = match[1];
+
+                auto headerPath = file::path{includeFile};
+		if (headerPath.is_relative())
+                    headerPath = file::path{_inputFileName}.parent_path()
+                                 / headerPath;
+		if (file::exists(headerPath))
+                    extraUnits.emplace_back(headerPath.string(),
+                                            CompilationUnit::HeaderFile);
+
                 auto sourceFile = findSourceFile(includeFile);
                 if (!sourceFile.empty())
                     extraUnits.emplace_back(sourceFile);
             }
 
-	    // phase 6: pre-pre-process local includes
-            if (re::regex_search(line, match, localIncludeRegex)) {
-                auto includeFile = match[1];
-		auto discoveredUnits = processLocalIncludeFile(includeFile, unit);
-		for (auto& unit : discoveredUnits)
-		    extraUnits.emplace_back(unit);
-	    }
-
-            // phase 7: identify "magic" includes
+            // phase 6: identify "magic" includes
             if (re::regex_search(line, match, systemIncludeRegex)) {
                 auto includeFile = match[1];
                 auto extraFlags = checkForMagicIncludes(includeFile);
@@ -148,13 +149,13 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
                     unit.pushFlags(extraFlags);
             }
 
-	    // phase 8: identify interpreter directives
+	    // phase 7: identify interpreter directives
 	    if (pendingDirective && re::regex_search(line, interpreterRegex)) {
                 pendingDirective = false;
 	    }
 
 
-            // phase 9: error reporting
+            // phase 8: error reporting
             if (pendingDirective) {
                 auto found = re::regex_search(line, match, hashBangRegex);
                 // we are *re*matching so this cannot fail
@@ -171,8 +172,15 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
 	    failed = true;
 	}
 
-	if (line != origline)
-	    rewrite = true;
+	if (line != origline) {
+            rewrite = true;
+
+	    if (unit.getIsHeader()) {
+                std::cerr << _inputFileName << ':' << _lineno
+                          << ":1: error: header files cannot be rewritten\n";
+		failed = true;
+            }
+        }
 
         out << line << '\n';
     }
@@ -261,30 +269,6 @@ std::string PrePreProcessor::findSourceFile(const std::string& header)
     }
 
     return std::string{};
-}
-
-std::list<CompilationUnit> PrePreProcessor::processLocalIncludeFile(
-		const std::string& header,
-		CompilationUnit &parent)
-{
-    auto headerPath = file::path{header};
-
-    if (headerPath.is_relative()) {
-	auto unitPath = file::path{_inputFileName};
-	headerPath = unitPath.parent_path() / headerPath;
-	if (file::exists(headerPath)) {
-	    auto unit = CompilationUnit{headerPath.native()};
-            ScopeExit cleanup{[&] { unit.removeTemporaryFiles(); }};
-            auto res = process(unit);
-	    for (auto& f : unit.getFlags())
-		    parent.pushFlags(f);
-	    // No need to copy private flags because there is no compilation
-	    // unit to apply them to
-	    return res;
-	}
-    }
-
-    return std::list<CompilationUnit>{};
 }
 
 /*!

@@ -21,8 +21,10 @@
 
 class CompilationUnit {
 public:
+    enum FileType { SourceFile, HeaderFile }; // used as named arguments
+
     CompilationUnit(const CompilationUnit& that);
-    CompilationUnit(std::string fname);
+    CompilationUnit(std::string fname, FileType type=SourceFile);
     ~CompilationUnit();
 
     std::string getInputFileName() const;
@@ -30,6 +32,9 @@ public:
     std::string getProcessedFileName() const;
     std::string getObjectFileName();
     std::string getExecutableFileName() const;
+
+    bool getIsHeader() const;
+    void setIsHeader(bool isHeader);
 
     void removeTemporaryFiles();
 
@@ -42,6 +47,7 @@ public:
 private:
     bool _hasProcessedFile;
     bool _hasObjectFile;
+    bool _isHeader;
     std::string _originalFileName;
     std::string _processedFileName;
     std::list<std::string> _flags;
