@@ -163,16 +163,10 @@ std::string CompilationUnit::getExecutableFileName() const
     if (!executable.empty())
 	return executable;
 
-    auto original = file::path{_originalFileName};
-    auto extension = original.extension();
-    if (extension == ".exe") {
-	auto filename = original.parent_path() / original.stem();
-        filename += "-hbcxx.exe";
-	return makeWriteable(filename).string();
-    }
-
-    original += ".exe";
-    return makeWriteable(original).string();
+    auto processed = file::path{_processedFileName};
+    auto filename = processed.parent_path() / processed.stem();
+    filename += ".exe";
+    return makeWriteable(filename).string();
 }
 
 void CompilationUnit::removeTemporaryFiles()
