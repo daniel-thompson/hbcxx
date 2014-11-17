@@ -27,17 +27,28 @@ namespace hbcxx {
 const std::string& unique(void);
 
 /*!
+ * A std::system() workalike that restore normal signal handling within the
+ * child.
+ */
+int system(const std::string& command);
+
+/*!
  * A std::system() workalike that captures the subprocess' standard output.
+ *
+ * \todo This command must be used with care. It does *not* restore normal
+ *       signal handling before launching child processes meaning the
+ *       system may appear unresponsive during sub-process execution.
  */
 int system(const std::string& command, std::unique_ptr<std::stringstream>& io);
 
 /*!
  * A std::system() workalike without shell argument parsing.
  *
- * \todo We cannot call ::execv (too many raw C headers) from here but
- *       we could translate args into a vector<const char *> and pass that
- *       to a non-template helper function. However I would prefer to wait
- *       for concepts to come along in C++14 before doing this.
+ * \todo This code currently requires a list be passed in. It would be better
+ *       to use a template function here. However we do not want to call
+ *       ::execv from the header (would require too many raw C headers).
+ *       However we could prepare a vector<const char *> and pass that to
+ *       a non-template helper function.
  */
 int system(const std::string& command, const std::list<std::string>& args);
 
@@ -53,6 +64,31 @@ int system(const std::string& command, const std::list<std::string>& args);
  * \returns the exit status of the child
  */
 int propagate_status(int res);
+
+/*!
+ * Prevent SIGINT and SIGQUIT signals from killing the process.
+ */
+void block_signals();
+
+/*!
+ * Re-enable signals previously blocked using hbcxx::block_signals.
+ */
+void unblock_signals();
+
+/*!
+ * Check is any blocked signals are pending.
+ * 
+ * Raises an exception if signals are pending.
+ */
+void poll_signals();
+
+/*!
+ * Report that an exception has occured.
+ */
+class signal_exception : public std::exception {
+public:
+    const char* what() const noexcept override { return "signal_exception"; }
+};
 
 }; // namespace hbcxx
 

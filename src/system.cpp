@@ -36,22 +36,18 @@
 
 static int forkExecAndWait(const char *path, const char* const argv[])
 {
-    // ignore SIGINT and SIGQUIT (this is intended only for the parent process
-    // but must be applied before the ::fork to avoid races)
-    struct sigaction act {};
-    act.sa_handler = SIG_IGN;
-    (void) sigaction(SIGINT, &act, NULL);
-    (void) sigaction(SIGQUIT, &act, NULL);
+    using namespace hbcxx;
+
+    block_signals();
 
     auto childPid = fork();
     if (-1 == childPid)
 	return -1;
 
     if (0 == childPid) {
-	// restore normal signal handling within the child
-        act.sa_handler = SIG_DFL;
-        (void) sigaction(SIGINT, &act, NULL);
-        (void) sigaction(SIGQUIT, &act, NULL);
+        // restore normal signal handling within the child
+	unblock_signals();
+
         (void) execv(path, const_cast<char**>(argv));
 	std::exit(127); // ::execv returns only on error
     }
@@ -68,6 +64,29 @@ const std::string& hbcxx::unique(void)
 {
     static auto uniq = std::string{"-hbcxx-"} + std::to_string(getpid());
     return uniq;
+}
+
+int hbcxx::system(const std::string& command)
+{
+    block_signals();
+
+    auto childPid = fork();
+    if (-1 == childPid)
+	return -1;
+
+    if (0 == childPid) {
+        // restore normal signal handling within the child
+	unblock_signals();
+	std::exit(propagate_status(::system(command.c_str())));
+    }
+
+    auto res = int{};
+    auto waitPid = wait(&res);
+    if (-1 == waitPid)
+	return -1;
+
+    hbcxx::poll_signals();
+    return res;
 }
 
 int hbcxx::system(const std::string& command, std::unique_ptr<std::stringstream>& output)
@@ -110,7 +129,7 @@ int hbcxx::propagate_status(int status)
     if (WIFSIGNALED(status)) {
 	auto signum = WTERMSIG(status);
 
-	if (signum == SIGQUIT) {
+        if (signum == SIGQUIT) {
 	    // the child has dumped core... make sure we avoid this
 	    struct rlimit rlim;
 	    (void) getrlimit(RLIMIT_CORE, &rlim);
@@ -118,13 +137,48 @@ int hbcxx::propagate_status(int status)
 	    (void) setrlimit(RLIMIT_CORE, &rlim);
 	}
 
-	// ensure normal signal handling before propagating the signal
-        struct sigaction act {};
-        act.sa_handler = SIG_DFL;
-        (void) sigaction(signum, &act, NULL);
-	(void) kill(getpid(), signum);
+	// re-pend the signal and restore normal signal handling
+        (void) kill(getpid(), signum);
+        unblock_signals();
     }
 
     assert(WIFEXITED(status));
     return WEXITSTATUS(status);
+}
+
+void hbcxx::block_signals()
+{
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGQUIT);
+
+    (void) sigprocmask(SIG_BLOCK, &set, NULL);
+}
+
+void hbcxx::unblock_signals()
+{
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGQUIT);
+
+    (void) sigprocmask(SIG_UNBLOCK, &set, NULL);
+}
+
+void hbcxx::poll_signals()
+{
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGQUIT);
+
+    struct timespec t{};
+
+    int signum = sigtimedwait(&set, NULL, &t);
+    if (signum > 0) {
+	// re-pend the signal
+        (void)kill(getpid(), signum);
+        throw signal_exception{};
+    }
 }

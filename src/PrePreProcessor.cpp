@@ -74,7 +74,9 @@ std::list<CompilationUnit> PrePreProcessor::process(CompilationUnit& unit)
     out << "#line 1 \"" << _inputFileName << "\"\n";
 
     while (in.good()) {
-	std::getline(in, origline);
+        hbcxx::poll_signals();
+
+        std::getline(in, origline);
 	_lineno += 1;
 
 	try {

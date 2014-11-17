@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
+#include "system.h"
 #include "CompilationUnit.h"
 #include "Options.h"
 
@@ -43,7 +44,7 @@ Toolset::Toolset()
 	    // load the default from the rc file
 	    _cxx = Options::cxx();
 	} else {
-	    if (0 == system("ccache --version >/dev/null 2>&1")) {
+	    if (0 == hbcxx::system("ccache --version >/dev/null 2>&1")) {
 		_cxx += "ccache ";
 		_hasCcache = true;
 	    } else {
@@ -147,7 +148,7 @@ void Toolset::compile(CompilationUnit& unit)
 
     if (Options::verbose())
 	std::cerr << "hbcxx: running: " << command << std::endl;
-    auto res = system(command.c_str());
+    auto res = hbcxx::system(command);
     if (0 != res)
 	throw ToolsetError{};
 }
@@ -168,7 +169,7 @@ void Toolset::link(std::list<CompilationUnit>& units)
 
     if (Options::verbose())
 	std::cerr << "hbcxx: running: " << command << std::endl;
-    auto res = system(command.c_str());
+    auto res = hbcxx::system(command);
     if (0 != res)
 	throw ToolsetError{};
 }
@@ -202,5 +203,5 @@ bool Toolset::cxx11Check(std::string cxx)
     auto command = cxx +
                    " -std=c++11 -c " + cxxfile.native() +
                               " -o " + objfile.native(); // + " >/dev/null 2>&1";
-    return (0 == system(command.c_str()));
+    return (0 == hbcxx::system(command));
 }
