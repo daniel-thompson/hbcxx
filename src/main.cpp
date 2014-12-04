@@ -66,10 +66,6 @@ static std::string handleArguments(std::list<std::string>& args, Toolset& toolse
 
 static int run(std::list<std::string>& args)
 {
-    auto home = std::getenv("HOME");
-    auto rcfile = file::path{home ? home : ""} / ".hbcxx" / "hbcxxrc";
-    Options::parseOptionsFile(rcfile.native());
-
     auto ppp = PrePreProcessor{};
     auto toolset = Toolset{};
 
@@ -138,6 +134,13 @@ static int run(std::list<std::string>& args)
 
 int main(int argc, const char* argv[])
 {
+    // we must process the options file before we process the command
+    // line because we want the things on the command line to supercede
+    // anything in the config file.
+    auto home = std::getenv("HOME");
+    auto rcfile = file::path{home ? home : ""} / ".hbcxx" / "hbcxxrc";
+    Options::parseOptionsFile(rcfile.native());
+
     // convert the arguments into an easily mutable form
     auto privateArgs = std::list<std::string>{};
     auto args = std::list<std::string>{};
