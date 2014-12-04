@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "system.h"
 #include "Options.h"
 
 int GdbLauncher::launch(const CompilationUnit& unit,
@@ -37,6 +38,6 @@ int GdbLauncher::launch(const CompilationUnit& unit,
 
     if (Options::verbose())
 	std::cerr << "hbcxx: running: " << command << std::endl;
-    return std::system(command.c_str());
+    return hbcxx::system(command.c_str());
 }
 

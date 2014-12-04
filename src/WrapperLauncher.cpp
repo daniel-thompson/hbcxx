@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "Options.h"
+#include "system.h"
 
 WrapperLauncher::WrapperLauncher(std::string wrapper)
     : _wrapper{std::move(wrapper)}
@@ -38,6 +39,6 @@ int WrapperLauncher::launch(const CompilationUnit& unit,
     // NOTE: _wrapper needs to undergo shell-like lexing. std::system() will
     //       do this automatically but if we switch to a more robust approach
     //       then we must pass _wrapper through hbcxx:shlex()
-    return std::system(command.c_str());
+    return hbcxx::system(command);
 }
 

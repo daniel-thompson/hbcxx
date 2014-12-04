@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "Options.h"
+#include "system.h"
 
 NoArgsLauncher::NoArgsLauncher(std::string wrapper)
     : _wrapper{std::move(wrapper)}
@@ -32,6 +33,6 @@ int NoArgsLauncher::launch(const CompilationUnit& unit,
 
     if (Options::verbose())
 	std::cerr << "hbcxx: running: " << command << std::endl;
-    return std::system(command.c_str());
+    return hbcxx::system(command);
 }
 
