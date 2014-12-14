@@ -53,6 +53,24 @@ int system(const std::string& command, std::unique_ptr<std::stringstream>& io);
 int system(const std::string& command, const std::list<std::string>& args);
 
 /*!
+ * Simple ::execv() wrapper.
+ *
+ * Failures within ::execv with are reported as a std::system_error.
+ */
+void exec(const std::string& command, const std::list<std::string>& args);
+
+/*!
+ * Simple ::setenv() wrapper.
+ */
+void setenv(const std::string& name, const std::string& value,
+            bool overwrite = true);
+
+/*!
+ * Simple ::unsetenv() wrapper.
+ */
+void unsetenv(const std::string& name);
+
+/*!
  * Propagate signals or return exit code.
  *
  * Examine a status value returned from ::wait and its friends.

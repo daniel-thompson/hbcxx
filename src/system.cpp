@@ -49,7 +49,10 @@ static int forkExecAndWait(const char *path, const char* const argv[])
 	unblock_signals();
 
         (void) execv(path, const_cast<char**>(argv));
-	std::exit(127); // ::execv returns only on error
+
+	// ::execv returns only on error (and having forked we've no
+	// longer got anyone to throw an exception at
+	std::exit(127);
     }
 
     auto res = int{};
@@ -116,6 +119,40 @@ int hbcxx::system(const std::string& command, const std::list<std::string>& args
     argv.push_back(nullptr);
 
     return forkExecAndWait(path, argv.data());
+}
+
+void hbcxx::exec(const std::string& command,
+                  const std::list<std::string>& args)
+{
+    // prepare the arguments for ::execv before forking whilst it is easier
+    // for us to handle the errors.
+    auto path = command.c_str();
+    auto argv = std::vector<const char*>{};
+    for (auto& arg : args)
+        argv.push_back(arg.c_str());
+    argv.push_back(nullptr);
+
+    (void)execv(path, const_cast<char**>(argv.data()));
+
+    // ::execv only returns if there is an error
+    throw std::system_error{std::error_code{errno, std::system_category()}};
+}
+
+void hbcxx::setenv(const std::string& name, const std::string& value,
+                   bool overwrite)
+{
+	auto res = ::setenv(name.c_str(), value.c_str(), overwrite);
+	if (0 != res)
+            throw std::system_error{
+                std::error_code{errno, std::system_category()}};
+}
+
+void hbcxx::unsetenv(const std::string& name)
+{
+	auto res = ::unsetenv(name.c_str());
+	if (0 != res)
+            throw std::system_error{
+                std::error_code{errno, std::system_category()}};
 }
 
 int hbcxx::propagate_status(int status)
