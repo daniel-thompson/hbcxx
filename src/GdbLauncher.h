@@ -18,10 +18,14 @@
 
 class GdbLauncher : public Launcher {
 public:
+    GdbLauncher(std::string gdb);
     virtual ~GdbLauncher() override {};
 
     virtual int launch(const CompilationUnit& unit,
                         const std::list<std::string>& args) override;
+
+private:
+    std::string _gdb;
 };
 
 #endif // HBCXX_GDB_LAUNCHER_H_

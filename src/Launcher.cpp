@@ -30,11 +30,10 @@ std::unique_ptr<Launcher> makeLauncher()
     if (debugger.empty())
 	return std::unique_ptr<Launcher>{new DefaultLauncher{}};
 
-    if (debugger == "gdb")
-	return std::unique_ptr<Launcher>{new GdbLauncher{}};
+    if (debugger == "gdb" || boost::starts_with(debugger, "gdb "))
+	return std::unique_ptr<Launcher>{new GdbLauncher{debugger}};
 
-    if (debugger == "valgrind"
-               || boost::starts_with(debugger, "valgrind "))
+    if (debugger == "valgrind" || boost::starts_with(debugger, "valgrind "))
         return std::unique_ptr<Launcher>{new WrapperLauncher{debugger}};
 
     return std::unique_ptr<Launcher>{new NoArgsLauncher{debugger}};

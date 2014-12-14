@@ -19,11 +19,16 @@
 #include "system.h"
 #include "Options.h"
 
+GdbLauncher::GdbLauncher(std::string gdb)
+    : _gdb{std::move(gdb)}
+{
+}
+
 int GdbLauncher::launch(const CompilationUnit& unit,
                              const std::list<std::string>& args)
 {
     auto executable = unit.getExecutableFileName();
-    auto command = std::string{"gdb"};
+    auto command = _gdb;
 
     // set up the exec wrapper to fixup arg0 for us
     hbcxx::setenv("HBCXX_SUBSTITUTE_ARG0", unit.getInputFileName());
