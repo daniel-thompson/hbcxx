@@ -22,6 +22,7 @@ src_hbcxx_SOURCES = \
 	src/filesystem.h src/filesystem.cpp \
 	src/string.h \
 	src/system.h src/system.cpp \
+	src/util.h \
 	src/CompilationUnit.h src/CompilationUnit.cpp \
 	src/DefaultLauncher.h src/DefaultLauncher.cpp \
 	src/GdbLauncher.h src/GdbLauncher.cpp \
