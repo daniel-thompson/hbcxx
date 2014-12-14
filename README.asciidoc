@@ -31,6 +31,8 @@ Instead just copy your C++ source code into +$HOME/bin+. Try it. It works.
 Features
 ~~~~~~~~
 
+ * Support for both gcc and clang, including auto-detection of which tool
+   is present in the PATH.
  * Automatically uses ccache to reduce program startup times (for build
    avoidance).
  * Enables -std=c++11 by default.
@@ -70,7 +72,8 @@ hbcxx is primarily hosted by http://sourceforge.net[sourceforge.net]
 and releases can be downloaded from:
 https://sourceforge.net/projects/hbcxx/files/ .
 
-Alternatively, if you prefer to acquire hbcxx using git then try:
+Alternatively, you could acquire the latest development version of hbcxx from
+git:
 
   git clone git://git.code.sf.net/p/hbcxx/code hbcxx
 
@@ -85,14 +88,15 @@ Prerequisites
 hbcxx requires a recent C++11 compiler (GCC 4.8 or later is
 recommended) and both boost::filesystem and boost::regex.
 
-NOTE: std::regex is included in C\+\+11 but because is not yet supported by
-      libstdc\++ 4.8.x hbcxx uses the boost library instead. Similarly
-      std::filesystem is expected to be included in C\+\+14. Once
-      these libraries are fully implemented in both GCC and clang's C++
-      libraries then the boost dependency may be relaxed.
+NOTE: std::regex is included in C\+\+11 but, because is not yet supported by
+      libstdc\++ 4.8.x, hbcxx uses the boost library instead. Similarly
+      std::filesystem is expected to be included in C++ standard at some
+      point. Once these libraries are fully implemented in both GCC and
+      clang's C++ libraries then the boost build time dependency may be
+      relaxed.
 
 It is also very strongly recommended that boost, ccache and pkg-config be
-installed since this provides hbcxx with a performant, batteries-included
+installed in order to provide hbcxx with a performant, batteries-included
 runtime environment suitable for writing portable scripts.
 
 The prerequisites can be met on Fedora 19 or later with the following
@@ -100,8 +104,8 @@ command:
 
   yum install gcc libstdc++-devel boost-devel ccache pkgconfig
 
-The prerequisites can be met on Debian 8 (Jessie) or later (and
-Ubuntu 14.04 or later) with the following command:
+The prerequisites can be met on Debian 8 (Jessie) or later with the following
+command:
 
   apt-get install gcc-c++ libstdc++-dev boost-all-dev ccache pkgconifg
 
@@ -133,16 +137,16 @@ Invocation
 ----------
 
 hbcxx treats its first non-flag argument as the source file that it
-must compile and link. This is typically the source file that contain
+must compile and link. This is typically the source file that contains
 the main() function.
 
-Any flags that appear before this source file will automatically be
+Any flags that appears before the source file will automatically be
 appended to the compiler and linker flags. Any arguments that appear
 after the source file are passed to the executable when it is launched.
 
 For example the following command will perform a compile main.cpp with
-level 2 optimizaton, then it will link and run the executable, passing
-the argument --help to the executable.
+level 2 optimization. Once compilation is complete hbcxx will link and
+run the executable, passing the argument --help to the executable.
 
   hbcxx -O2 main.cpp --help
 
@@ -161,26 +165,26 @@ lookup as the command shell):
 hbcxx arguments
 ~~~~~~~~~~~~~~~
 
-Arguments that commence +--hbcxx-+ are intercepted by hbcxx wherever they appear
-in the argument list regardless of whether they appear before or after the
-supplied source file. These arguments are not passed to the resulting
-executable, instead these arguments can be used to trigger useful
-diagnostic features.
+Arguments that commence +--hbcxx-+ are intercepted by hbcxx whenever they
+appear in the argument list regardless of whether they appear before or after
+the supplied source file. These arguments are not passed to the resulting
+executable, instead these arguments can be used to trigger useful special
+features of the tool.
 
-For example +main.cpp+, as described above, can be passed hash bang
+For example +main.cpp+, as described above, can be passed hbcxx
 arguments in the following way (each of which is equivalent):
 
-  hbcxx -O2 --hbcxx-verbose main.cpp --help
-  hbcxx -O2 main.cpp --hbcxx-verbose --help
+  hbcxx --hbcxx-verbose main.cpp --help
+  hbcxx main.cpp --hbcxx-verbose --help
   ./main.cpp --hbcxx-verbose --help
   ./main.cpp --help --hbcxx-verbose
 
-Before processing the command line arguments are also read from
-+.hbcxx/hbcxxrc+. This can be used to set defaults such as the
-default compiler and optimization level. For arguments read from
-the config file the +--hbcxx-+ prefix is optional.
+Before processing commences hbcxx arguments are also read from
++$HOME/.hbcxx/hbcxxrc+. This can be used to set defaults such as the default
+compiler and optimization level. Arguments read from the config file are
+typically newline separated and the +--hbcxx-+ prefix is optional.
 
-The following hash bang arguments may be supplied.
+The following hash bang arguments may be supplied:
 
   --hbcxx-version
 
@@ -188,37 +192,39 @@ Show hbcxx version information and exit.
 
   --hbcxx-verbose
 
-Build in verbose mode showing the command line of all compiler and
-linker invocations.
+Build in verbose mode showing the decisions made by the pre-pre-processor
+and the command lines of all compiler and linker invocations.
 
   --hbcxx-executable=<filename>
 
 Compile and link the executable, storing the result as <filename>.
-Unlike other invocations the executable will not be launched automatically.
+Additionally the executable will not be launched automatically.
 This option allows a traditional executable to be built and shared
-with others.
+with others who may not have installed hbcxx.
 
   --hbcxx-save-temps
 
-Retain all temporary files created by hbcxx Typically this option
+Retain all temporary files created by hbcxx. Typically this option
 should be combined with --hbcxx-verbose in order to discover the file names
 used for temporaries.
 
   --hbcxx-debugger=<debugger>
 
-Launch the executable inside a symbolic debugger. If the debugger is a
-supported debugger then the executable will be run using the arguments
-supplied on the command line (as normal) until it hits a breakpoint on
-the main() function. For other debuggers hbcxx will use the shell to execute
-the following command and all other arguments will be disregarded:
+Launch the executable inside a symbolic debugger. It will also automatically
+add the -g flag to the compiler and linker flags.
 
-  <debugger> <executable>
+If the debugger is a supported debugger then the executable will be run under
+the debugger and will be supplied the arguments supplied on the command line
+(as normal). Currently the supported debuggers are gdb and valgrind.
 
-Currently the only supported debuggers are gdb and valgrind.
+NOTE: gdb is launched such that it's +run+ command will automatically inherit
+      arguments from hbcxx.
 
-NOTE: When an debugger is selected the -g flag will automatically be
-      appended to the compiler and linker flags but the optimization
-      level will not be affected.
+For other debuggers hbcxx will use the shell to execute the following command
+and all other arguments will be disregarded: +<debugger> <executable>+
+
+Arguments may be passed to the debugger by including them in +<debugger>+. For
+example: +--hbcxx-debugger="valgrind --trace-children=yes"+
 
   --hbcxx-Ox
 
@@ -238,21 +244,29 @@ the command line.
 Include file handling
 ---------------------
 
-hbcxx parses #include directives that appear in the source code. This feature
-is primarily used to locate other source files that must be compiled and linked.
-It is also used to recognise the inclusion of boost header files and automatically
-add the boost libraries to the link.
+hbcxx parses +#include+ directives that appear in the source code. This feature
+is primarily used to locate other source files that must be compiled and
+linked. It is also used to recognise the inclusion of boost header files and
+automatically add the boost libraries to the link.
 
-Any quoted +#include+ directive will cause hbcxx to search for source files with the
-same name as the header file and, if one is found it will be compiled and linked.
-For example, +#include "libalpha/AlphaManager.h"+ causes hbcxx to search for the
-following files (relative to the source file in which the #include appears):
+Any quoted +#include+ directive (meaning one that uses double quotes rather
+then +<>+) will cause hbcxx to search for source files with the same name as
+the header file and, if one is found it will be compiled and linked.  Quoted
+include files are also scanned for further hash bang directives. For example,
++#include "libalpha/AlphaManager.h"+ causes hbcxx to search for
++libalpha/AlphaManager.h+ relative to the location of the current file. If it
+exists, it will scan the file for hash bang directives and also search for the
+following files:
 
  * +libalpha/AlphaManager.cpp+
  * +libalpha/AlphaManager.c+++
  * +libalpha/AlphaManager.C+
  * +libalpha/AlphaManager.cc+
  * +libalpha/AlphaManager.c+
+
+NOTE: hbcxx does not use the include search path (built up using -I) when
+      searching for header files. It will only search relatively to the
+      file currently being processed.
 
 Similar a bracketed include directive is checked against an internal list of
 header files that imply linker options. For example the following line causes
@@ -271,13 +285,13 @@ comments have the form:
 NOTE: The whitespace between //#! and the <directive> is optional.
 
 The directive can appear anywhere on a line and like all double slash comments
-extend to the end of the line. Hash bang directives are parsed *before*
-C pre-processing. This means hash bang directives cannot be influenced
-by +#if 0+ or any other C pre-processor conditional behaviour.
-Similarly hash bang directives that appear in header files will be ignored.
+in C++ extends to the end of the line. Hash bang directives are parsed *before*
+C pre-processing (as part of a pre-pre-processing stage). This means hash bang
+directives cannot be influenced by +#if 0+ or any other C pre-processor
+conditional behaviour.
 
 For example to following line will include jack.h (through normal
-operation of the C preprocessor) and also contains a hash bang
+operation of the C pre-processor) and also contains a hash bang
 directive that directs hbcxx to use +pkg-config+ to lookup the compiler
 and linker arguments needed by the jack package:
 
@@ -298,19 +312,20 @@ Unix-like program loader will only understand the first form):
 Interpreter directive
 ~~~~~~~~~~~~~~~~~~~~~
 
-Interpreter directives are will typically follow one of the following
-forms (shown here without the optional leading +//+):
+Interpreter directives typically follow one of the following forms (shown here
+without the optional leading +//+):
 
-  #!<path-to-hbcxx> <args>...
-  #!/usr/bin/env hbcxx <args>...
+  #!<path-to-hbcxx> [<arg>]
+  #!/usr/bin/env hbcxx
 
 The first form is direct execution of hbcxx using the absolute path of
 the hbcxx command, whilst the other indirectly executes hbcxx using the
 +env+ command to determine the correct path.
 
-NOTE: Using +/usr/bin/env+ to launch hbcxx is strongly recommended. Using
-      +/usr/bin/env+ increases script portability because the script need not
-      know the absolute path to hbcxx (which may differ between sites).
+NOTE: Using +/usr/bin/env+ to launch hbcxx is strongly recommended (providing
+      the optional argument is not required. Using +/usr/bin/env+ increases
+      script portability because the script need not know the absolute path
+      to hbcxx (which may differ between sites).
 
 Interpreter directives do not influence the behaviour hbcxx at all. However
 hbcxx may issue warnings if the interpreter directive fails basic sanity
@@ -341,9 +356,9 @@ Examples:
   // use direct linkage
   #include <libfoo/foobar.h> //#! -lfoo
 
-Raw flags are collected from and applied to all source files processed
-by hbcxx both the single file supplied on the command line and any
-subsequently added through auto-discovery or using the source directive.
+Raw flags are collected from all files before any compilation. They are
+applied to all source files compiled by hbcxx regardless of what file the
+flags appeared in.
 
 Private flag directives
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -359,7 +374,7 @@ compilation units. However one common use is to indicate specific
 compilation units that should receive special optimization effort
 because they are where the program spends most of its time. This can
 yield a good trade off between initial program launch time (-O0
-compiles much more quickly then -O3) and program execution.
+compiles much more quickly then -O3) and program execution time.
 
 Requires directives
 ~~~~~~~~~~~~~~~~~~~
@@ -377,14 +392,14 @@ The first form, without any version number, causes hbcxx to lookup the
 The second form performs all the actions of the first form but additionally
 checks that the version number of the package meets the specified constraint.
 
-The two forms can be space seperated and intermixed within a single
+The two forms can be space separated and intermixed within a single
 requires directive.
 
 Examples:
 
   //#! requires: jack
   //#! requires: gtk+-3.0 >= 3.10
-  //#! requires: foo >= 2.0   bar   teepipe <= 1.9.99
+  //#! requires: foo >= 2.0 bar teepipe <= 1.9.99
 
 Source directives
 ~~~~~~~~~~~~~~~~~
@@ -395,12 +410,12 @@ be compiled and linked into the executable and have the following form:
   //#! source: <filename>...
 
 Each filename supplied using source directives will be included in the list of
-files to be compiled. If the file is already known to hbcxx it is ignored making
-it safe for cycles to exist between source file (if is safe for a.cpp
-to source b.cpp even if b.cpp also sources a.cpp).
+files to be compiled. If the file is already on the list then sourcing it again
+has no effect. Thus it is safe for cycles to exist between source files (if is
+safe for a.cpp to source b.cpp even if b.cpp also sources a.cpp).
 
-Source directives should be used when auto-discovery by +#include+ parsing does
-not work.
+Source directives is primarily used when the structure of the source code
+prevents auto-discovery-via-+#include+ from working correctly.
 
 Examples:
 
@@ -415,7 +430,8 @@ Unusual directives
 
 The directives introduced in this section are less commonly used than
 the other hash bang directives. Most are used only for specialist needs
-and beginner users will seldom need to use them.
+(such as setting preferences in +.hbcxx/hbcxxrc+) and users will seldom
+need to use them.
 
   //#! cxx: <compiler>
 
@@ -438,8 +454,12 @@ Bugs and missing features
  * An executable is launched using +--debugger=valgrind+ will observe the
    name of the (temporary) compiled executable file in argument 0 rather than
    the name of the underlying source file.
- * Can only generate wholly dynamic (default) or wholly static
-   (+hbcxx -static <filename>+) executables (wholly static executables
-   are strongly discouraged by the GNU glibc maintainers). The capacity to
-   generate mostly static executables where unusual libraries are
-   statically linked would be very helpful.
+ * hbcxx can only generate wholly dynamic (default) or wholly static
+   (+hbcxx -static <filename>+) executables. Given that wholly static
+   executables are strongly discouraged by the GNU glibc maintainers. The
+   capacity to generate mostly static executables where unusual libraries are
+   statically linked would be very helpful to make binaries produced by
+   +--hbcxx-executable+ portable to a wider range of distributions.
+ * hbcxx does not attempt to use multiple threads to shorten compilation
+   times. Instead it is assumed that ccache offers sufficient improvement in
+   script execution time.
