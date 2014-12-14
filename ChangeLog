@@ -1,6 +1,12 @@
 hbcxx-0.8
 =========
 
+Daniel Thompson (1):
+      Initial revision.
+
+hbcxx-0.9
+=========
+
 Daniel Thompson (13):
       Provide sufficient links to allow the README to act as the SF homepage.
       Implement --hbcxx-executable=<filename>
@@ -14,4 +20,58 @@ Daniel Thompson (13):
       Provide an example demonstrating automatic source code discovery.
       Provide a "fun" example to play sound.
       Recognise ALSA headers and deploy pkg-config automatically.
+
+hbcxx-1.0
+=========
+
+Daniel Thompson (23):
+      Improve --help text.
+      Stop hbcxx writing cxx11check.o to the current directory.
+      Add automatic -lboost_program_options .
+      configure: Disable the address sanitizer
+      tests: empty and flags tests
+      Pre-pre-process local include files.
+      tests: Make the logs for the self-hosting test more useful
+      Cache the results of compiler auto-detection.
+      README: Reflow a few overly long lines.
+      Put some unique(ish) property into temporary filenames.
+      Bump the version numver and distribute the test support files.
+      Add support for compile-in-place
+      Improve temporary file handling.
+      Reduce the flag explosion due to parsing header files.
+      Pre-pre-process headers exactly once
+      CompilationUnit: Simplify executable filename generation
+      Polled signal handling.
+      Fix signal handling in all the launchers
+      Fix ordering of argument processing
+      Introduce wrappers for exec, setenv and unsetenv.
+      Modify gdb launcher to preserve arg0
+      Review and update the documentation.
+      Allow arguments to be passed to gdb.
+
+Daniel Thompson (24):
+      Improve --help text.
+      Stop hbcxx writing cxx11check.o to the current directory.
+      Add automatic -lboost_program_options .
+      configure: Disable the address sanitizer
+      tests: empty and flags tests
+      Pre-pre-process local include files.
+      tests: Make the logs for the self-hosting test more useful
+      Cache the results of compiler auto-detection.
+      README: Reflow a few overly long lines.
+      Put some unique(ish) property into temporary filenames.
+      Bump the version numver and distribute the test support files.
+      Add support for compile-in-place
+      Improve temporary file handling.
+      Reduce the flag explosion due to parsing header files.
+      Pre-pre-process headers exactly once
+      CompilationUnit: Simplify executable filename generation
+      Polled signal handling.
+      Fix signal handling in all the launchers
+      Fix ordering of argument processing
+      Introduce wrappers for exec, setenv and unsetenv.
+      Modify gdb launcher to preserve arg0
+      Review and update the documentation.
+      Allow arguments to be passed to gdb.
+      Include util.h in the distributed source.
 
