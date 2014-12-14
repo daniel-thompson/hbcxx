@@ -23,18 +23,18 @@ int GdbLauncher::launch(const CompilationUnit& unit,
                              const std::list<std::string>& args)
 {
     auto executable = unit.getExecutableFileName();
-    auto command = std::string{"gdb "};
-    command += executable;
+    auto command = std::string{"gdb"};
 
-    if (!args.empty()) {
-        command += " -ex 'break main' -ex 'run";
-        for (auto& arg : args) {
-            command += " '\"'\"'";
-            command += arg;
-            command += "'\"'\"'";
-        }
-        command += "'";
-    }
+    // set up the exec wrapper to fixup arg0 for us
+    hbcxx::setenv("HBCXX_SUBSTITUTE_ARG0", unit.getInputFileName());
+    command += std::string{" -ex 'set exec-wrapper "};
+    command += Options::commandName();
+    command += '\'';
+
+    command += " --args ";
+    command += executable;
+    for (auto& arg : args)
+        command += std::string{" '"} + arg + "' ";
 
     if (Options::verbose())
 	std::cerr << "hbcxx: running: " << command << std::endl;

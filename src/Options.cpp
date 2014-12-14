@@ -25,28 +25,27 @@ using boost::trim_left;
 static struct {
     bool verbose;
     bool saveTemps;
+    std::string commandName;
     std::string cxx;
     std::string debugger;
     std::string executable;
     std::string optimization;
-} optionStore = { false, false };
-
-bool Options::verbose() { return optionStore.verbose; }
+} optionStore = { false, false };bool Options::verbose() { return optionStore.verbose; }
 bool Options::saveTemps() { return optionStore.saveTemps; }
+const std::string& Options::commandName() { return optionStore.commandName; }
 const std::string& Options::cxx() { return optionStore.cxx; }
 const std::string& Options::debugger() { return optionStore.debugger; }
 const std::string& Options::executable() { return optionStore.executable; }
 const std::string& Options::optimization() { return optionStore.optimization; }
 
-/*!
- * Filter arguments and process hbcxx arguments.
- *
- * \returns true if the argument is a hash bang argument, false otherwise.
- */
+void Options::handleArg0(const std::string& arg)
+{
+    optionStore.commandName = arg;
+}
+
 bool Options::checkArgument(const std::string& arg)
 {
     if (arg == "--hbcxx-version") {
-	std::cout << PACKAGE_STRING << std::endl;
 	std::exit(0);
     }
 

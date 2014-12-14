@@ -435,9 +435,9 @@ executable be linked or run.
 Bugs and missing features
 -------------------------
 
- * Executables get the wrong value passed as argument 0 when run
-   using --hbcxx-debugger. They are passed the name of the linked
-   executable rather than the underlying source file.
+ * An executable is launched using +--debugger=valgrind+ will observe the
+   name of the (temporary) compiled executable file in argument 0 rather than
+   the name of the underlying source file.
  * Can only generate wholly dynamic (default) or wholly static
    (+hbcxx -static <filename>+) executables (wholly static executables
    are strongly discouraged by the GNU glibc maintainers). The capacity to

@@ -14,6 +14,7 @@
 #include <signal.h>
 
 #include <cstdlib>
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <list>
@@ -35,9 +36,45 @@
 using hbcxx::ScopeExit;
 namespace file = boost::filesystem;
 
+/*!
+ * A complete alternative program triggered by --hbcxx-exec-wrapper
+ *
+ * When launched as an exec wrapper we exec our arguments just as we
+ * find them with the exception of arg0 which we substitute if an alternative
+ * has been provided using an environment variable.
+ *
+ * This code path is used to ensure programs supervised by gdb are launched
+ * with the correct value in arg0.
+ */
+static int exec_wrapper(std::list<std::string>& args)
+{
+	auto newarg0 = std::getenv("HBCXX_SUBSTITUTE_ARG0");
+	auto oldarg0 = args.front(); // this was originally passed in arg1
+
+	// make sure the variable is not observed by the sub-process
+	hbcxx::unsetenv("HBCXX_SUBSTITUTE_ARG0");
+
+	if (newarg0) {
+            args.pop_front();
+            args.emplace_front(newarg0);
+	}
+
+	hbcxx::exec(oldarg0, args);
+
+	// unconditionally throw an error; exec should never return
+	return 127;
+}
+
 class ArgumentError : public std::exception {
 };
 
+/*!
+ * Determine which program to build.
+ *
+ * Pops arguments from args until we can determine what program to build. At
+ * this point args has had all toolset options removed and contains only those
+ * arguments that must be passed to the program once we have built it.
+ */
 static std::string handleArguments(std::list<std::string>& args, Toolset& toolset)
 {
     auto showHelp = bool{false};
@@ -141,6 +178,9 @@ int main(int argc, const char* argv[])
     auto rcfile = file::path{home ? home : ""} / ".hbcxx" / "hbcxxrc";
     Options::parseOptionsFile(rcfile.native());
 
+    // arg0 gets special handling
+    Options::handleArg0(argv[0]);
+
     // convert the arguments into an easily mutable form
     auto privateArgs = std::list<std::string>{};
     auto args = std::list<std::string>{};
@@ -153,7 +193,11 @@ int main(int argc, const char* argv[])
     // command line tools can have *very* simple stop the world
     // exception handling models (or they could just call exit())
     try {
-	return run(args);
+	// launch the alternative program is HBCXX_SUBSTITUTE_ARG0 is set
+	if (std::getenv("HBCXX_SUBSTITUTE_ARG0"))
+            return exec_wrapper(args);
+
+        return run(args);
     }
     catch (PrePreProcessorError& te) {
 	// PrePreProcessor should already have logged an error report

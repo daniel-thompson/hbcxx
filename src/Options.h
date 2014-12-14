@@ -20,10 +20,16 @@ namespace Options {
 
 bool verbose();
 bool saveTemps();
+const std::string& commandName();
 const std::string& cxx();
 const std::string& debugger();
 const std::string& executable();
 const std::string& optimization();
+
+/*!
+ * Maintain a record of how hbcxx itself was launched.
+ */
+void handleArg0(const std::string& arg);
 
 /*!
  * Filter arguments and process hbcxx arguments.
