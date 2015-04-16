@@ -33,13 +33,11 @@ AX_APPEND_COMPILE_FLAGS([-Weffc++])
 AC_CHECK_HEADER([boost/filesystem.hpp], [], [
   AC_MSG_ERROR([unable to find the boost filesystem header])
 ])
-AX_APPEND_LINK_FLAGS([-lboost_filesystem])
+LIBS="$LIBS -lboost_filesystem"
 AC_CHECK_HEADER([boost/regex.hpp], [], [
   AC_MSG_ERROR([unable to find the boost regex header])
 ])
-AX_APPEND_LINK_FLAGS([-lboost_regex])
-dnl Needed by boost filesystem
-AX_APPEND_LINK_FLAGS([-lboost_system])
+LIBS="$LIBS -lboost_regex -lboost_system"
 
 dnl Keep this near the bottom - adding -Werror breaks various compiler 
 dnl based tests
